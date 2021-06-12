@@ -57,9 +57,9 @@ async def before_invoke(ctx):
 async def _git(ctx):
     with open("restarting.py", "w") as f:
         f.write('import os, time\ntime.sleep(10)\nos.system("python bot.py")')
-    result = popen("git pull").read()
+    result = popen("git pull")
     await ctx.send("완료")
-    await ctx.send(f"```{result}```")
+    await ctx.send(f"```{result.read()}```")
     popen("python restarting.py")
     await bot.close()
 
