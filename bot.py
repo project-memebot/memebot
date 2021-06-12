@@ -4,9 +4,11 @@ import sqlite3 as sql
 from os import listdir, popen
 from os.path import isfile
 from Tools.var import errorcolor
+from pickle import load
 
 
-token = "ODUyODAyMzkwMDgzMzcxMDI4.YMMIHg.BsH_u5M8TasSLqAnTXsV6rjaiFQ"
+with open('token.bin', 'rb') as f:
+    token = load(f)
 mentions = discord.AllowedMentions.all()
 mentions.replied_user = False
 bot = commands.Bot(

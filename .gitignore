@@ -4,3 +4,6 @@
 .db
 __pycache__
 __pycache__/
+.bin
+*.bin
+token.bin
