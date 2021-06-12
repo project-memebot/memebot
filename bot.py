@@ -50,7 +50,7 @@ async def before_invoke(ctx):
     await ctx.trigger_typing()
 
 
-@commands.command(name="깃풀", aliases=["git pull", "깃허브 풀", "ㄱㅍ"])
+@bot.command(name="깃풀", aliases=["git pull", "깃허브 풀", "ㄱㅍ"])
 @commands.is_owner()
 async def _git(ctx):
     with open("restarting.py", "w") as f:
