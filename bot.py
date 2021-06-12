@@ -90,6 +90,6 @@ async def on_command_error(ctx, error):
             value=f"{ctx.guild.name} ({ctx.guild.id})\n{ctx.channel.name} ({ctx.channel.id})",
         )
         embed.add_field(name="오류 내용", value=f"```py\n{error}```")
-        await (bot.get_channel(852767241891741706)).send(embed=embed)
+        await (bot.get_channel(852767242704650290)).send(embed=embed)
 
 bot.run(token)
