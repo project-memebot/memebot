@@ -38,7 +38,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
             )
             description = "" if msg.content == "없음" else msg.content
-            embed = discord.Embed(title="확인", description=msg.content, color=embedcolor)
+            embed = discord.Embed(title="확인", description=description, color=embedcolor)
             embed.set_image(url=img.url)
             await ctx.send(
                 content="이 내용으로 짤을 등록할까요?\nOK는 `ㅇ`, X는 `ㄴ`를 입력해 주세요", embed=embed
