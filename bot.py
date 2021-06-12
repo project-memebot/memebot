@@ -7,8 +7,8 @@ from Tools.var import errorcolor
 from pickle import load
 
 
-with open('token.bin', 'rb') as f:
-    token = load(f)
+with open('token.bin', 'rb') as tokenfile:
+    token = load(tokenfile)
 mentions = discord.AllowedMentions.all()
 mentions.replied_user = False
 bot = commands.Bot(
@@ -56,7 +56,7 @@ async def before_invoke(ctx):
 @commands.is_owner()
 async def _git(ctx):
     with open("restarting.py", "w") as f:
-        f.write('import os, time\ntime.sleep(5)\nos.system("python bot.py")')
+        f.write('import os, time\ntime.sleep(10)\nos.system("python bot.py")')
     result = popen("git pull").read()
     await ctx.send("완료")
     await ctx.send(f"```{result}```")
