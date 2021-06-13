@@ -46,7 +46,7 @@ async def on_ready():
     await bot.change_presence(
         status=discord.Status.online,
         activity=discord.Game(
-            "ㅉ도움", type=discord.ActivityType.listening, start=datetime.datetime.utcnow()
+            "ㅉhelp", type=discord.ActivityType.listening, start=datetime.datetime.utcnow()
         ),
     )
     await bot.get_channel(852767242704650290).send("켜짐")

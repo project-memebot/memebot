@@ -9,10 +9,15 @@ from random import choice
 
 
 class Usermeme(commands.Cog, name="짤 공유"):
+
+    """
+    유저들이 짤을 공유하고 보는 명령어들
+    """
+
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="업로드", aliases=("올리기", "ㅇㄹㄷ"))
+    @commands.command(name="업로드", aliases=("올리기", "ㅇㄹㄷ"), help='유저들이 공유하고 싶은 짤을 올리는 기능입니다', usage='ㅉ업로드')
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.max_concurrency(3, commands.BucketType.default, wait=True)
     async def _upload(self, ctx):
@@ -73,7 +78,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
         remove(filename)
         conn.close()
 
-    @commands.command(name="랜덤", aliases=("ㄹㄷ", "무작위", "랜덤보기", "뽑기"))
+    @commands.command(name="랜덤", aliases=("ㄹㄷ", "무작위", "랜덤보기", "뽑기"), help='유저들이 올린 짤들 중에서 랜덤으로 뽑아 올려줍니다', usage='ㅉ랜덤')
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def _random(self, ctx):
         conn = sql.connect("memebot.db", isolation_level=None)
