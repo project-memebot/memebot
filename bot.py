@@ -56,7 +56,6 @@ async def on_ready():
 async def before_invoke(ctx):
     if ctx.author.id in bot.owner_ids:
         ctx.command.reset_cooldown(ctx)
-    await ctx.trigger_typing()
 
 
 @bot.command(name="깃풀", aliases=["git pull", "깃허브 풀", "ㄱㅍ"])

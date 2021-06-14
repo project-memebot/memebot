@@ -27,7 +27,6 @@ class Usermeme(commands.Cog, name="짤 공유"):
         try:
             msg = await self.bot.wait_for(
                 "message",
-                timeout=20,
                 check=lambda m: m.author == ctx.author
                 and m.channel == ctx.channel
                 and m.attachments != [],
@@ -39,7 +38,6 @@ class Usermeme(commands.Cog, name="짤 공유"):
             await ctx.send("짤의 설명을 입력해주시고 없으면 `없음`을 입력해주세요")
             msg = await self.bot.wait_for(
                 "message",
-                timeout=20,
                 check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
             )
             description = "" if msg.content == "없음" else msg.content
@@ -50,7 +48,6 @@ class Usermeme(commands.Cog, name="짤 공유"):
             )
             msg = await self.bot.wait_for(
                 "message",
-                timeout=20,
                 check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
             )
             if msg.content != "ㅇ":
