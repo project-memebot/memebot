@@ -2,3 +2,4 @@ discord.py
 jishaku
 EZPaginator
 aiohttp
+aiofiles

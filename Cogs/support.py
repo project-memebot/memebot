@@ -8,17 +8,16 @@ class Support(commands.Cog, name="지원"):
         self.bot = bot
 
     @commands.command(
-        name="초대",
-        aliases=("ㅊㄷ", "링크", "서포트", "지원"),
+        name="링크",
+        aliases=("ㄹㅋ", "초대", "서포트", "지원"),
         help="봇의 초대링크와 서포트 서버 링크를 보여줍니다",
         usage="ㅉ초대",
     )
     async def _link(self, ctx):
         embed = discord.Embed(
             title="지원",
-            description="[서포트 서버 초대](https://discord.gg/Jjv2MFyddt) \
-        [봇 초대](https://discord.com/api/oauth2/authorize?client_id=852802390083371028&permissions=537184336 \
-        &redirect_uri=https%3A%2F%2Fdiscord.gg%2FJjv2MFyddt&scope=bot)",
+            description="[서포트 서버 초대](http://support.memebot.kro.kr)\n\
+            [봇 초대](http://invite.memebot.kro.kr)\n[코리안봇츠](http://koreanbots.memebot.kro.kr) ",
             color=embedcolor,
         )
         await ctx.send(embed=embed)
@@ -38,7 +37,7 @@ class Support(commands.Cog, name="지원"):
         )
 
     @commands.command(
-        name="도움", aliases=("ㄷㅇ",), help="봇의 명령어들을 보여줍니다", usage="ㅉ도움 [명령어/카테고리]"
+        name="도움", aliases=("ㄷㅇ", "help"), help="봇의 명령어들을 보여줍니다", usage="ㅉ도움 [명령어/카테고리]"
     )
     async def _help(self, ctx, help_=None):
         if not help_:

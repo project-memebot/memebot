@@ -17,8 +17,9 @@ bot = commands.Bot(
     owner_ids=(745848200195473490,),
     intents=discord.Intents.all(),
 )
+bot.remove_command('help')
 cooldown = {}
-using_cmd = {}
+using_cmd = []
 
 
 @bot.event
@@ -36,6 +37,10 @@ async def on_ready():
         "CREATE TABLE IF NOT EXISTS webhooks (url text PRIMARY KEY, guild_id INTEGER)"
     )
     # 유저가 업로드한 밈들 보낼 웹훅
+    with conn:
+        with open("backup.sql", "w") as f:
+            for line in conn.iterdump():
+                f.write("%s\n" % line)
     conn.close()
     await (bot.get_channel(852767243360403497)).send(
         str(datetime.datetime.utcnow() + datetime.timedelta(hours=9)),
@@ -63,40 +68,28 @@ async def on_ready():
 async def before_invoke(ctx):
     if ctx.author.id in bot.owner_ids:
         ctx.command.reset_cooldown(ctx)
-    using_cmd[ctx.author.id][ctx.command] = True
+    using_cmd.append(ctx.author.id)
 
 
 @bot.after_invoke
 async def after_invoke(ctx):
-    using_cmd[ctx.author.id][ctx.command] = True
+    using_cmd.remove(ctx.author.id)
 
 
 @bot.event
 async def on_message(message):
-    if not message.startswith(bot.command_prefix):
+    if not message.content.startswith(bot.command_prefix):
         return
     conn = sql.connect("memebot.db", isolation_level=None)
     cur = conn.cursor()
-    cur.execute("SELECT * FROM blacklist WHERE id=?", message.author.id)
+    cur.execute("SELECT * FROM blacklist WHERE id=?", (message.author.id,))
     if cur.fetchall():
         return
     conn.close()
-    cmd = (await bot.get_context(message)).command
-    if message.author.id not in cooldown or cmd not in cooldown[message.author.id]:
-        can_use = True
-    else:
-        if (datetime.datetime.utcnow() - cooldown[message.author.id][cmd]).seconds >= 3:
-            can_use = True
-        else:
-            raise commands.CommandOnCooldown
-    if message.author.id not in using_cmd or cmd not in using_cmd[message.author.id]:
-        can_use *= True
-    else:
-        if not using_cmd[message.author.id][cmd]:
-            can_use *= True
-        else:
-            raise commands.MaxConcurrencyReached
-    cooldown[message.author.id][cmd] = datetime.datetime.utcnow()
+    if message.author.id in using_cmd or (message.author.id in cooldown and (datetime.datetime.utcnow() - cooldown[message.author.id]).seconds < 3):
+        return
+    await bot.process_commands(message)
+    cooldown[message.author.id] = datetime.datetime.utcnow()
 
 
 @bot.event
@@ -110,23 +103,19 @@ async def on_command_error(ctx, error):
         commands.MissingRequiredArgument,
     ]:
         return
-    if isinstance(error, commands.CommandOnCooldown):
-        await ctx.send(f"`{round(error.retry_after, 2)}`초 후에 다시 시도해 주세요")
-    if isinstance(error, commands.MaxConcurrencyReached):
-        await ctx.send("현재 실행중인 명령어의 사용을 먼저 마쳐 주세요")
-    else:
-        embed = discord.Embed(
-            title="오류", description=f"`{ctx.message.content}`", color=errorcolor
-        )
-        embed.add_field(
-            name="오류 발생자", value=f"{ctx.author} ({ctx.author.id})\n{ctx.author.mention}"
-        )
-        embed.add_field(
-            name="오류 발생지",
-            value=f"{ctx.guild.name} ({ctx.guild.id})\n{ctx.channel.name} ({ctx.channel.id})",
-        )
-        embed.add_field(name="오류 내용", value=f"```py\n{error}```")
-        await (bot.get_channel(852767242704650290)).send(embed=embed)
+
+    embed = discord.Embed(
+        title="오류", description=f"`{ctx.message.content}`", color=errorcolor
+    )
+    embed.add_field(
+        name="오류 발생자", value=f"{ctx.author} ({ctx.author.id})\n{ctx.author.mention}"
+    )
+    embed.add_field(
+        name="오류 발생지",
+        value=f"{ctx.guild.name} ({ctx.guild.id})\n{ctx.channel.name} ({ctx.channel.id})",
+    )
+    embed.add_field(name="오류 내용", value=f"```py\n{error}```")
+    await (bot.get_channel(852767242704650290)).send(embed=embed)
 
 
 bot.run(token)

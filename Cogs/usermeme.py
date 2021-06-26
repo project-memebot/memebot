@@ -2,11 +2,13 @@ import sqlite3 as sql
 from asyncio import TimeoutError
 from random import choice
 import discord
-from os import popen
+import aiohttp
 from EZPaginator import Paginator
 from discord.ext import commands, tasks
 from Tools.var import embedcolor
 from datetime import datetime, timedelta
+import aiofiles
+from os.path import getsize
 
 
 class Usermeme(commands.Cog, name="짤 공유"):
@@ -46,14 +48,15 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
             )
             if not msg.attachments:
-                if not msg.content.lower().endswith(
+                '''if not msg.content.lower().endswith(
                     (".jpg", ".jpeg", ".gif", ".png", ".webp")
                 ):
                     return await ctx.send(
                         "지원되지 않는 파일 형식입니다.\n지원되는 파일 형식: jpg, jpeg, gif, png, webp"
-                    )
+                    )'''
                 url = msg.content
             else:
+                '''
                 if (
                     msg.attachments[0]
                     .filename.lower()
@@ -61,8 +64,12 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 ):
                     return await ctx.send(
                         "지원되지 않는 파일 형식입니다.\n지원되는 파일 형식: jpg, jpeg, gif, png, webp"
-                    )
+                    )'''
                 url = msg.attachments[0].url
+            '''
+            if not url.lower().endswith((".jpg", ".jpeg", ".png", ".webp", ".gif")):
+                return await ctx.send("지원되지 않는 파일 형식입니다.")
+            '''
             await ctx.send("짤의 제목을 입력해주세요")
             msg = await self.bot.wait_for(
                 "message",
@@ -82,24 +89,25 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 raise TimeoutError
         except TimeoutError:
             return await ctx.send("취소되었습니다.")
-        result = (
-            await popen(
-                f'curl --location --request POST "https://api.imgbb.com/1/upload?expiration=600 \
-            &key=1b3f9aa2b8438a1dd52a7af5be5e055f" --form "image={url}"'
-            )
-            .read()
-            .json()
+        filename = (
+            str(ctx.author.id)
+            + " "
+            + str(datetime.utcnow() + timedelta(hours=9))
+            + "."
+            + url.split(".")[-1]
         )
-        if result["status"] != 200:
-            return await ctx.reply("사진 업로드에 실패했습니다.")
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                async with aiofiles.open(filename, "wb") as f:
+                    await f.write(await resp.read())
+        if getsize(filename) > 8388608:
+            return await ctx.send("파일 크기가 너무 큽니다")
+        msg = await self.bot.get_channel(852811274886447114).send(
+            file=discord.File(filename)
+        )
         cur.execute(
             "INSERT INTO usermeme(id, uploader_id, title, url) VALUES(?, ?, ?, ?)",
-            (
-                result["data"]["id"],
-                ctx.author.id,
-                title,
-                result["data"]["image"]["url"],
-            ),
+            (msg.id, ctx.author.id, title, msg.attachments[0].url),
         )
         await ctx.reply("짤 업로드 완료")
         conn.close()
@@ -116,7 +124,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
         cur.execute("SELECT * FROM usermeme")
         meme = choice(cur.fetchall())
         conn.close()
-        embed = discord.Embed(title="랜덤 짤", description=meme[2], color=embedcolor)
+        embed = discord.Embed(title=meme[2], color=embedcolor)
         embed.set_image(url=meme[3])
         member = await self.bot.fetch_user(meme[1])
         embed.set_author(
@@ -136,7 +144,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
         enabled=False,
     )
     async def meme(self, ctx):
-        await ctx.reply("ㅉ짤 <갤러리/제거/수정> [짤 ID]\n(짤 ID는 갤러리 명령어 사용시 불필요)")
+        await ctx.reply("ㅉ짤 <목록/제거/수정> [짤 ID]\n(짤 ID는 목록 명령어 사용시 불필요)")
 
     @meme.command(
         name="목록",
@@ -213,7 +221,11 @@ class Usermeme(commands.Cog, name="짤 공유"):
         await self.bot.get_channel(855376857407291423).send(f"삭제 요청: {result[0]}")
 
     @meme.command(
-        name="수정", aliases=("ㅅㅈ", "변경"), usage="ㅉ수정 <짤 ID>", help="자신이 올린 짤의 제목을 바꿉니다"
+        name="수정",
+        aliases=("ㅅㅈ", "변경"),
+        usage="ㅉ수정 <짤 ID>",
+        help="자신이 올린 짤의 제목을 바꿉니다",
+        enabled=False,
     )
     async def _edit(self, ctx, memeid=None):
         if memeid is None:
