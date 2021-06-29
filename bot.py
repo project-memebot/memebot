@@ -6,6 +6,7 @@ from os import listdir, popen
 from os.path import isfile
 from Tools.var import errorcolor
 from pickle import load
+import koreanbots
 
 with open("token.bin", "rb") as tokenfile:
     token = load(tokenfile)
@@ -20,6 +21,9 @@ bot = commands.Bot(
 bot.remove_command("help")
 cooldown = {}
 using_cmd = []
+with open('koreanbots_token.bin', 'rb') as f:
+    koreanbots_token = load(f)
+BOT = koreanbots.Client(bot, koreanbots_token)
 
 
 @bot.event

@@ -3,3 +3,4 @@ jishaku
 EZPaginator
 aiohttp
 aiofiles
+koreanbots
