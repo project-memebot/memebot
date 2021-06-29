@@ -19,6 +19,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
 
     def __init__(self, bot):
         self.bot = bot
+        self._backupdb.start()
 
     @tasks.loop(minutes=15)
     async def _backupdb(self):
@@ -48,15 +49,15 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
             )
             if not msg.attachments:
-                '''if not msg.content.lower().endswith(
+                """if not msg.content.lower().endswith(
                     (".jpg", ".jpeg", ".gif", ".png", ".webp")
                 ):
                     return await ctx.send(
                         "지원되지 않는 파일 형식입니다.\n지원되는 파일 형식: jpg, jpeg, gif, png, webp"
-                    )'''
+                    )"""
                 url = msg.content
             else:
-                '''
+                """
                 if (
                     msg.attachments[0]
                     .filename.lower()
@@ -64,12 +65,12 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 ):
                     return await ctx.send(
                         "지원되지 않는 파일 형식입니다.\n지원되는 파일 형식: jpg, jpeg, gif, png, webp"
-                    )'''
+                    )"""
                 url = msg.attachments[0].url
-            '''
+            """
             if not url.lower().endswith((".jpg", ".jpeg", ".png", ".webp", ".gif")):
                 return await ctx.send("지원되지 않는 파일 형식입니다.")
-            '''
+            """
             await ctx.send("짤의 제목을 입력해주세요")
             msg = await self.bot.wait_for(
                 "message",

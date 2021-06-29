@@ -17,7 +17,7 @@ bot = commands.Bot(
     owner_ids=(745848200195473490,),
     intents=discord.Intents.all(),
 )
-bot.remove_command('help')
+bot.remove_command("help")
 cooldown = {}
 using_cmd = []
 
@@ -86,7 +86,10 @@ async def on_message(message):
     if cur.fetchall():
         return
     conn.close()
-    if message.author.id in using_cmd or (message.author.id in cooldown and (datetime.datetime.utcnow() - cooldown[message.author.id]).seconds < 3):
+    if message.author.id in using_cmd or (
+        message.author.id in cooldown
+        and (datetime.datetime.utcnow() - cooldown[message.author.id]).seconds < 3
+    ):
         return
     await bot.process_commands(message)
     cooldown[message.author.id] = datetime.datetime.utcnow()
