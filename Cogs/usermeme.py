@@ -42,36 +42,19 @@ class Usermeme(commands.Cog, name="짤 공유"):
     async def _upload(self, ctx):
         conn = sql.connect("memebot.db", isolation_level=None)
         cur = conn.cursor()
-        await ctx.send("사진(파일 또는 URL)을 업로드해 주세요.", delete_after=5)
+        await ctx.send("사진(파일 또는 URL)을 업로드해 주세요.")
         try:
             msg = await self.bot.wait_for(
                 "message",
                 check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
             )
             if not msg.attachments:
-                """if not msg.content.lower().endswith(
-                    (".jpg", ".jpeg", ".gif", ".png", ".webp")
-                ):
-                    return await ctx.send(
-                        "지원되지 않는 파일 형식입니다.\n지원되는 파일 형식: jpg, jpeg, gif, png, webp"
-                    )"""
                 url = msg.content
             else:
-                """
-                if (
-                    msg.attachments[0]
-                    .filename.lower()
-                    .endswith((".jpg", ".jpeg", ".gif", ".png", ".webp"))
-                ):
-                    return await ctx.send(
-                        "지원되지 않는 파일 형식입니다.\n지원되는 파일 형식: jpg, jpeg, gif, png, webp"
-                    )"""
                 url = msg.attachments[0].url
-            """
             if not url.lower().endswith((".jpg", ".jpeg", ".png", ".webp", ".gif")):
                 return await ctx.send("지원되지 않는 파일 형식입니다.")
-            """
-            await ctx.send("짤의 제목을 입력해주세요")
+            await ctx.send("짤의 제목을 입력해주세요\n제목이 없으면 `없음`을 입력해주세요")
             msg = await self.bot.wait_for(
                 "message",
                 check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
