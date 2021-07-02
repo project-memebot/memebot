@@ -45,6 +45,20 @@ class Support(commands.Cog, name="지원"):
         else:
             await ctx.send_help(help_)
 
+    @commands.command(
+        name="크레딧", help="봇을 만들 때 도움을 주신 분들과 이미지들의 출처를 보여줍니다", usage="ㅉ크레딧"
+    )
+    async def _credit(self, ctx):
+        embed = discord.Embed(
+            title="크레딧",
+            description="[프로필 사진 원본 이미지] \
+            (https://www.flaticon.com/free-icon/picture_2659360?term=image&page=1&position=10&page=1 \
+            &position=10&related_id=2659360&origin=search)\n\
+            프로필 사진 제작자 - <@441202161481809922>",
+            color=embedcolor,
+        )
+        await ctx.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(Support(bot))

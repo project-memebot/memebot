@@ -21,7 +21,7 @@ bot = commands.Bot(
 bot.remove_command("help")
 cooldown = {}
 using_cmd = []
-with open('koreanbots_token.bin', 'rb') as f:
+with open("koreanbots_token.bin", "rb") as f:
     koreanbots_token = load(f)
 BOT = koreanbots.Client(bot, koreanbots_token)
 
@@ -70,14 +70,16 @@ async def on_ready():
 
 @bot.before_invoke
 async def before_invoke(ctx):
-    if ctx.author.id in bot.owner_ids:
-        ctx.command.reset_cooldown(ctx)
     using_cmd.append(ctx.author.id)
+    if ctx.author.id in bot.owner_ids:
+        del cooldown[ctx.author.id]
+        using_cmd.remove(ctx.author.id)
 
 
 @bot.after_invoke
 async def after_invoke(ctx):
-    using_cmd.remove(ctx.author.id)
+    if ctx.author.id in using_cmd:
+        using_cmd.remove(ctx.author.id)
 
 
 @bot.event
@@ -90,11 +92,13 @@ async def on_message(message):
     if cur.fetchall():
         return
     conn.close()
-    if message.author.id in using_cmd or (
-        message.author.id in cooldown
-        and (datetime.datetime.utcnow() - cooldown[message.author.id]).seconds < 3
-    ):
-        return
+    if message.author.id in bot.owner_ids:
+        return await bot.process_commands(message)
+    if message.author.id in using_cmd:
+        return await message.channel.send('현재 실행중인 명령어를 먼저 끝내 주세요.')
+    if message.author.id in cooldown and (datetime.datetime.utcnow() - cooldown[message.author.id]).seconds < 3:
+        retry_after = datetime.datetime.utcnow() - cooldown[message.author.id]
+        return await message.send(f'현재 쿨타임에 있습니다.\n{retry_after.seconds}초 후 다시 시도해 주세요')
     await bot.process_commands(message)
     cooldown[message.author.id] = datetime.datetime.utcnow()
 
