@@ -95,10 +95,13 @@ async def on_message(message):
     if message.author.id in bot.owner_ids:
         return await bot.process_commands(message)
     if message.author.id in using_cmd:
-        return await message.channel.send('현재 실행중인 명령어를 먼저 끝내 주세요.')
-    if message.author.id in cooldown and (datetime.datetime.utcnow() - cooldown[message.author.id]).seconds < 3:
+        return await message.channel.send("현재 실행중인 명령어를 먼저 끝내 주세요.")
+    if (
+        message.author.id in cooldown
+        and (datetime.datetime.utcnow() - cooldown[message.author.id]).seconds < 3
+    ):
         retry_after = datetime.datetime.utcnow() - cooldown[message.author.id]
-        return await message.send(f'현재 쿨타임에 있습니다.\n{retry_after.seconds}초 후 다시 시도해 주세요')
+        return await message.send(f"현재 쿨타임에 있습니다.\n{retry_after.seconds}초 후 다시 시도해 주세요")
     await bot.process_commands(message)
     cooldown[message.author.id] = datetime.datetime.utcnow()
 
