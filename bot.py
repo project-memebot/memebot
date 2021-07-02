@@ -71,15 +71,13 @@ async def on_ready():
 @bot.before_invoke
 async def before_invoke(ctx):
     using_cmd.append(ctx.author.id)
-    if ctx.author.id in bot.owner_ids:
+    if ctx.author.id in bot.owner_ids and ctx.author.id in cooldown:
         del cooldown[ctx.author.id]
-        using_cmd.remove(ctx.author.id)
 
 
 @bot.after_invoke
 async def after_invoke(ctx):
-    if ctx.author.id in using_cmd:
-        using_cmd.remove(ctx.author.id)
+    using_cmd.remove(ctx.author.id)
 
 
 @bot.event
