@@ -1,12 +1,13 @@
 import datetime
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 import sqlite3 as sql
-from os import listdir, popen
+from os import listdir
 from os.path import isfile
 from Tools.var import errorcolor
 from pickle import load
 import koreanbots
+from itertools import cycle
 
 with open("token.bin", "rb") as tokenfile:
     token = load(tokenfile)
@@ -18,16 +19,52 @@ bot = commands.Bot(
     owner_ids=(745848200195473490,),
     intents=discord.Intents.all(),
 )
-bot.remove_command("help")
 cooldown = {}
 using_cmd = []
 with open("koreanbots_token.bin", "rb") as f:
     koreanbots_token = load(f)
 BOT = koreanbots.Client(bot, koreanbots_token)
 
+presences = []
+
 
 @bot.event
 async def on_ready():
+    global presences
+    presences = cycle(
+        [
+            discord.Activity(
+                name="짤",
+                type=discord.ActivityType.watching,
+                large_image_url=bot.user.avatar_url,
+            ),
+            discord.Activity(
+                name="ㅉhelp",
+                type=discord.ActivityType.listening,
+                large_image_url=bot.user.avatar_url,
+            ),
+            discord.Activity(
+                name=f"{len(bot.guilds)}서버",
+                type=discord.ActivityType.playing,
+                large_image_url=bot.user.avatar_url,
+            ),
+            discord.Activity(
+                name="http://invite.memebot.kro.kr",
+                type=discord.ActivityType.watching,
+                large_image_url=bot.user.avatar_url,
+            ),
+            discord.Activity(
+                name="http://support.memebot.kro.kr",
+                type=discord.ActivityType.watching,
+                large_image_url=bot.user.avatar_url,
+            ),
+            discord.Activity(
+                name="http://koreanbots.kro.kr",
+                type=discord.ActivityType.watching,
+                large_image_url=bot.user.avatar_url,
+            ),
+        ]
+    )
     conn = sql.connect("memebot.db", isolation_level=None)
     cur = conn.cursor()
     cur.execute(
@@ -40,11 +77,14 @@ async def on_ready():
     cur.execute(
         "CREATE TABLE IF NOT EXISTS webhooks (url text PRIMARY KEY, guild_id INTEGER)"
     )
+    cur.execute(
+        "CREATE TABLE IF NOT EXISTS customprefix (guild_id INTEGER PRIMARY KEY, prefix text)"
+    )
     # 유저가 업로드한 밈들 보낼 웹훅
     with conn:
-        with open("backup.sql", "w") as f:
+        with open("backup.sql", "w", encoding="UTF-8") as backupfile:
             for line in conn.iterdump():
-                f.write("%s\n" % line)
+                backupfile.write(f"{line}\n")
     conn.close()
     await (bot.get_channel(852767243360403497)).send(
         str(datetime.datetime.utcnow() + datetime.timedelta(hours=9)),
@@ -57,15 +97,13 @@ async def on_ready():
             print(f"Cogs.{file[:-3]}")
     bot.load_extension("jishaku")
     print("jishaku")
-    await bot.change_presence(
-        status=discord.Status.online,
-        activity=discord.Game(
-            "ㅉhelp",
-            type=discord.ActivityType.listening,
-            start=datetime.datetime.utcnow(),
-        ),
-    )
+    change_presence.start()
     await bot.get_channel(852767242704650290).send("켜짐")
+
+
+@tasks.loop(seconds=5)
+async def change_presence():
+    await bot.change_presence(activity=next(presences))
 
 
 @bot.before_invoke
@@ -82,13 +120,20 @@ async def after_invoke(ctx):
 
 @bot.event
 async def on_message(message):
-    if not message.content.startswith(bot.command_prefix):
-        return
     conn = sql.connect("memebot.db", isolation_level=None)
     cur = conn.cursor()
     cur.execute("SELECT * FROM blacklist WHERE id=?", (message.author.id,))
     if cur.fetchall():
         return
+    cur.execute("SELECT * FROM customprefix WHERE guild_id=?", (message.guild.id,))
+    data = cur.fetchall()
+    if data:
+        if not message.content.startswith(data[0][1]):
+            return None
+        message.content = "ㅉ" + "".join(message.content.split(data[0][1])[1:])
+    else:
+        if not message.content.startswith(bot.command_prefix):
+            return None
     conn.close()
     if message.author.id in bot.owner_ids:
         return await bot.process_commands(message)
@@ -99,7 +144,9 @@ async def on_message(message):
         and (datetime.datetime.utcnow() - cooldown[message.author.id]).seconds < 3
     ):
         retry_after = datetime.datetime.utcnow() - cooldown[message.author.id]
-        return await message.send(f"현재 쿨타임에 있습니다.\n{retry_after.seconds}초 후 다시 시도해 주세요")
+        return await message.channel.send(
+            f"현재 쿨타임에 있습니다.\n{retry_after.seconds}초 후 다시 시도해 주세요"
+        )
     await bot.process_commands(message)
     cooldown[message.author.id] = datetime.datetime.utcnow()
 
@@ -130,4 +177,5 @@ async def on_command_error(ctx, error):
     await (bot.get_channel(852767242704650290)).send(embed=embed)
 
 
+bot.remove_command("help")
 bot.run(token)

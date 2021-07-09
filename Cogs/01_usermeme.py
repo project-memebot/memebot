@@ -27,7 +27,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
         with conn:
             with open("backup.sql", "w") as f:
                 for line in conn.iterdump():
-                    f.write("%s\n" % line)
+                    f.write(f"{line}\n")
         conn.close()
         await (self.bot.get_channel(852767243360403497)).send(
             str(datetime.utcnow() + timedelta(hours=9)), file=discord.File("backup.sql")
@@ -37,7 +37,6 @@ class Usermeme(commands.Cog, name="짤 공유"):
         name="업로드",
         aliases=("올리기", "ㅇㄹㄷ"),
         help="유저들이 공유하고 싶은 짤을 올리는 기능입니다",
-        usage="ㅉ업로드",
     )
     async def _upload(self, ctx):
         conn = sql.connect("memebot.db", isolation_level=None)
@@ -80,6 +79,8 @@ class Usermeme(commands.Cog, name="짤 공유"):
             + "."
             + url.split(".")[-1]
         )
+        if not filename.lower().endswith((".jpg", ".jpeg", ".png", ".webp", ".gif")):
+            return await ctx.send("지원되지 않는 파일 형식입니다.")
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as resp:
                 async with aiofiles.open(filename, "wb") as f:
@@ -100,7 +101,6 @@ class Usermeme(commands.Cog, name="짤 공유"):
         name="랜덤",
         aliases=("ㄹㄷ", "무작위", "랜덤보기", "뽑기"),
         help="유저들이 올린 짤들 중에서 랜덤으로 뽑아 올려줍니다",
-        usage="ㅉ랜덤",
     )
     async def _random(self, ctx):
         conn = sql.connect("memebot.db", isolation_level=None)
@@ -120,42 +120,39 @@ class Usermeme(commands.Cog, name="짤 공유"):
         await ctx.reply(embed=embed)
 
     @commands.group(
-        "짤",
+        "내짤",
         invoke_without_command=True,
-        usage="ㅉ짤 <갤러리/제거/수정> [짤 ID]",
-        aliases=("ㅉ",),
+        usage="<갤러리/제거/수정> [짤 ID]",
+        aliases=("ㄴㅉ", "짤"),
         help="올린 짤의 목록을 보거나 지우거나 수정합니다",
-        enabled=False,
     )
     async def meme(self, ctx):
-        await ctx.reply("ㅉ짤 <목록/제거/수정> [짤 ID]\n(짤 ID는 목록 명령어 사용시 불필요)")
+        conn = sql.connect("memebot.db")
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM customprefix WHERE guild_id=?", (ctx.guild.id,))
+        prefix = cur.fetchall()
+        prefix = prefix[0][1] if prefix else "ㅉ"
+        conn.close()
+        await ctx.reply(f"{prefix}내짤 <목록/제거/수정> [짤 ID]\n(짤 ID는 목록 명령어 사용시 불필요)")
 
     @meme.command(
         name="목록",
-        aliases=("ㅁㄹ", "내거보기"),
+        aliases=("ㅁㄹ", "보기"),
         help="내가 올린 짤의 목록을 봅니다",
-        usage="ㅉ내짤",
-        enabled=False,
     )
     async def _mymeme(self, ctx):
         conn = sql.connect("memebot.db", isolation_level=None)
         cur = conn.cursor()
-        cur.execute("SELECT * FROM usermeme WHERE uploader_id=?", ctx.author.id)
+        cur.execute("SELECT * FROM usermeme WHERE uploader_id=?", (ctx.author.id,))
         memes = cur.fetchall()
         embeds = list()
-        for i in range(len(memes) % 15 + 1 if len(memes) % 15 != 0 else 0):
+        for i in memes:
             embed = discord.Embed(
-                title=f"내짤 ({i+1}/{len(memes) % 15 + 1 if len(memes) % 15 != 0 else 0} 페이지)"
+                title=f'{"**" + i[2] + "**" if i[2] != "" else i[2]} ({i[0]})',
+                color=embedcolor,
             )
-            for j in memes[
-                i * 15 : (i + 1) * 15 + 1 if (i + 1) * 15 > len(memes) else len(memes)
-            ]:
-                embed.add_field(
-                    name="\u200b",
-                    value=j[2][:40] + f"... ({j[1]})"
-                    if len(j[2]) > 40
-                    else j[2] + f"... {j[1]}",
-                )
+            embed.set_author(name=f"내짤 목록 ({memes.index(i)+1}/{len(memes)} 페이지)")
+            embed.set_image(url=i[3])
             embed.set_footer(text="짤 제목 뒤에 있는 글자는 짤 ID입니다.")
             embeds.append(embed)
         page = Paginator(
@@ -171,17 +168,16 @@ class Usermeme(commands.Cog, name="짤 공유"):
         name="제거",
         aliases=("ㅈㄱ", "삭제"),
         help="자신이 올렸던 짤을 삭제합니다",
-        usage="ㅉ삭제 <짤 ID>",
-        enabled=False,
+        usage="<짤 ID>",
     )
     async def _delete(self, ctx, memeid=None):
         if memeid is None:
             return await ctx.send(
-                f"사용법은 `{ctx.command.usage}`입니다.\n(짤 ID는 `ㅉ내짤` 명령어에서 확인 할 수 있습니다.)"
+                f"사용법은 `{ctx.command.usage}`입니다.\n(짤 ID는 내짤 명령어에서 확인 할 수 있습니다.)"
             )
         conn = sql.connect("memebot.db", isolation_level=None)
         cur = conn.cursor()
-        cur.execute("SELECT * FROM usermeme WHERE id=?", memeid)
+        cur.execute("SELECT * FROM usermeme WHERE id=?", (memeid,))
         try:
             result = cur.fetchall()[0]
         except IndexError:
@@ -202,23 +198,21 @@ class Usermeme(commands.Cog, name="짤 공유"):
         cur.execute("DELETE FROM usermeme WHERE id=?", (memeid,))
         conn.close()
         await ctx.reply("삭제 완료")
-        await self.bot.get_channel(855376857407291423).send(f"삭제 요청: {result[0]}")
 
     @meme.command(
         name="수정",
         aliases=("ㅅㅈ", "변경"),
-        usage="ㅉ수정 <짤 ID>",
+        usage="<짤 ID>",
         help="자신이 올린 짤의 제목을 바꿉니다",
-        enabled=False,
     )
     async def _edit(self, ctx, memeid=None):
         if memeid is None:
             return await ctx.send(
-                f"사용법은 `{ctx.command.usage}`입니다.\n(짤 ID는 `ㅉ내짤` 명령어에서 확인 할 수 있습니다.)"
+                f"사용법은 `{ctx.command.usage}`입니다.\n(짤 ID는 내짤 명령어에서 확인 할 수 있습니다.)"
             )
         conn = sql.connect("memebot.db", isolation_level=None)
         cur = conn.cursor()
-        cur.execute("SELECT * FROM usermeme WHERE id=?", memeid)
+        cur.execute("SELECT * FROM usermeme WHERE id=?", (memeid,))
         if not cur.fetchall():
             await ctx.send("짤을 찾을 수 없습니다")
         await ctx.send("바꿀 제목을 입력해 주세요")
