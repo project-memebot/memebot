@@ -59,10 +59,10 @@ class Support(commands.Cog, name="지원"):
             )
             embed.set_footer(text=f'{ctx.guild} 서버의 접두사는 "{prefix}"입니다')
             cogs = self.bot.cogs
-            if ctx.author.id not in self.bot.owner_ids:
-                del cogs["오너"]
-                del cogs["Jishaku"]
             for i in cogs:
+                if i in ['Jishaku', '오너']:
+                    if ctx.author.id not in self.bot.owner_ids:
+                        continue
                 cmds = [j for j in cogs[i].get_commands()]
                 for j in cmds:
                     if not j.enabled:
@@ -77,8 +77,7 @@ class Support(commands.Cog, name="지원"):
             return
         embed = discord.Embed(
             title=f"도움말",
-            description=f'**{cmd.qualified_name if cmd.parents else cmd.name} \
-        **```diff\n+ {cmd.help}```',
+            description=f'**{cmd.qualified_name if cmd.parents else cmd.name}**```diff\n+ {cmd.help}```',
             color=embedcolor,
         )
         embed.add_field(
@@ -87,9 +86,7 @@ class Support(commands.Cog, name="지원"):
         )
         embed.add_field(
             name="사용법",
-            value='`' + prefix
-            + (cmd.qualified_name + " ") if cmd.parents else cmd.name +
-            + ("" if cmd.usage is None else cmd.usage) + '`',
+            value=f'`{prefix}{(cmd.qualified_name + " ") if cmd.parents else cmd.name}{"" if cmd.usage == "" else " " + cmd.usage}`',
         )
         await ctx.reply(embed=embed)
 

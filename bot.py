@@ -8,6 +8,8 @@ from Tools.var import errorcolor
 from pickle import load
 import koreanbots
 from itertools import cycle
+from keep_alive import keep_alive
+
 
 with open("token.bin", "rb") as tokenfile:
     token = load(tokenfile)
@@ -91,8 +93,10 @@ async def on_ready():
         file=discord.File("backup.sql"),
     )
     print("ready")
-    for file in [j if isfile("Cogs/" + j) else None for j in listdir("Cogs")]:
-        if file is not None:
+    cogs = [j if isfile("Cogs/" + j) else "" for j in listdir("Cogs")]
+    cogs.sort()
+    for file in cogs:
+        if file != "":
             bot.load_extension(f"Cogs.{file[:-3]}")
             print(f"Cogs.{file[:-3]}")
     bot.load_extension("jishaku")
@@ -150,7 +154,7 @@ async def on_message(message):
     await bot.process_commands(message)
     cooldown[message.author.id] = datetime.datetime.utcnow()
 
-
+'''
 @bot.event
 async def on_command_error(ctx, error):
     if type(error) in [
@@ -175,7 +179,7 @@ async def on_command_error(ctx, error):
     )
     embed.add_field(name="오류 내용", value=f"```py\n{error}```")
     await (bot.get_channel(852767242704650290)).send(embed=embed)
-
-
+'''
+keep_alive()
 bot.remove_command("help")
 bot.run(token)
