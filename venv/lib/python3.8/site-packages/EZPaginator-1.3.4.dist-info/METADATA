@@ -1,0 +1,20 @@
+Metadata-Version: 2.1
+Name: EZPaginator
+Version: 1.3.4
+Summary: Python wrapper for discord.py pagination.
+Home-page: https://github.com/khk4912/EZPaginator
+Author: khk4912
+Author-email: khk49121@gmail.com
+License: MIT
+Keywords: discord.py,paginaion
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Requires-Python: >=3.6
+Requires-Dist: discord.py
+
+UNKNOWN
+
+

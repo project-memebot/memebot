@@ -154,7 +154,8 @@ async def on_message(message):
     await bot.process_commands(message)
     cooldown[message.author.id] = datetime.datetime.utcnow()
 
-'''
+
+"""
 @bot.event
 async def on_command_error(ctx, error):
     if type(error) in [
@@ -179,7 +180,7 @@ async def on_command_error(ctx, error):
     )
     embed.add_field(name="오류 내용", value=f"```py\n{error}```")
     await (bot.get_channel(852767242704650290)).send(embed=embed)
-'''
+"""
 keep_alive()
 bot.remove_command("help")
 bot.run(token)
