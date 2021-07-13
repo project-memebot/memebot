@@ -23,7 +23,7 @@ cooldown = {}
 using_cmd = []
 with open("koreanbots_token.bin", "rb") as f:
     koreanbots_token = load(f)
-BOT = koreanbots.Client(bot, koreanbots_token)
+BOT = koreanbots.Koreanbots(bot, koreanbots_token, run_task=True)
 
 presences = []
 
