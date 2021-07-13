@@ -8,7 +8,6 @@ from discord.ext import commands, tasks
 from Tools.var import embedcolor
 from datetime import datetime, timedelta
 import aiofiles
-from os.path import getsize
 
 
 class Usermeme(commands.Cog, name="짤 공유"):

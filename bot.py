@@ -1,15 +1,13 @@
 import datetime
-import discord
-from discord.ext import commands, tasks
 import sqlite3 as sql
+from itertools import cycle
 from os import listdir
 from os.path import isfile
-from Tools.var import errorcolor
 from pickle import load
+import discord
 import koreanbots
-from itertools import cycle
-from keep_alive import keep_alive
-
+from discord.ext import commands, tasks
+from Tools.var import errorcolor
 
 with open("token.bin", "rb") as tokenfile:
     token = load(tokenfile)
@@ -154,7 +152,7 @@ async def on_message(message):
     await bot.process_commands(message)
     cooldown[message.author.id] = datetime.datetime.utcnow()
 
-'''
+
 @bot.event
 async def on_command_error(ctx, error):
     if type(error) in [
@@ -179,7 +177,7 @@ async def on_command_error(ctx, error):
     )
     embed.add_field(name="오류 내용", value=f"```py\n{error}```")
     await (bot.get_channel(852767242704650290)).send(embed=embed)
-'''
-keep_alive()
+
+
 bot.remove_command("help")
 bot.run(token)
