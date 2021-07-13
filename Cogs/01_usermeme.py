@@ -85,11 +85,12 @@ class Usermeme(commands.Cog, name="짤 공유"):
             async with session.get(url) as resp:
                 async with aiofiles.open(filename, "wb") as f:
                     await f.write(await resp.read())
-        if getsize(filename) > 8388608:
+        try:
+            msg = await self.bot.get_channel(852811274886447114).send(
+                file=discord.File(filename)
+            )
+        except discord.Forbidden:
             return await ctx.send("파일 크기가 너무 큽니다")
-        msg = await self.bot.get_channel(852811274886447114).send(
-            file=discord.File(filename)
-        )
         cur.execute(
             "INSERT INTO usermeme(id, uploader_id, title, url) VALUES(?, ?, ?, ?)",
             (msg.id, ctx.author.id, title, msg.attachments[0].url),
