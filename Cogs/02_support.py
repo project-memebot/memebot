@@ -77,8 +77,8 @@ class Support(commands.Cog, name="지원"):
             return
         embed = discord.Embed(
             title=f"도움말",
-            description=f'**{cmd.qualified_name if cmd.parents else cmd.name} \
-        **```diff\n+ {cmd.help}```',
+            description=f"**{cmd.qualified_name if cmd.parents else cmd.name} \
+        **```diff\n+ {cmd.help}```",
             color=embedcolor,
         )
         embed.add_field(
@@ -87,9 +87,9 @@ class Support(commands.Cog, name="지원"):
         )
         embed.add_field(
             name="사용법",
-            value='`' + prefix
-            + (cmd.qualified_name + " ") if cmd.parents else cmd.name +
-            + ("" if cmd.usage is None else cmd.usage) + '`',
+            value="`" + prefix + (cmd.qualified_name + " ")
+            if cmd.parents
+            else cmd.name + +("" if cmd.usage is None else cmd.usage) + "`",
         )
         await ctx.reply(embed=embed)
 
