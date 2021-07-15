@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from Tools.var import embedcolor
+from tool import embedcolor
 import sqlite3 as sql
 
 
@@ -59,10 +59,10 @@ class Support(commands.Cog, name="지원"):
             )
             embed.set_footer(text=f'{ctx.guild} 서버의 접두사는 "{prefix}"입니다')
             cogs = self.bot.cogs
-            if ctx.author.id not in self.bot.owner_ids:
-                del cogs["오너"]
-                del cogs["Jishaku"]
             for i in cogs:
+                if ctx.author.id not in self.bot.owner_ids:
+                    if i in ["오너", "Jishaku"]:
+                        continue
                 cmds = [j for j in cogs[i].get_commands()]
                 for j in cmds:
                     if not j.enabled:

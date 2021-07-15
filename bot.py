@@ -7,14 +7,15 @@ from pickle import load
 import discord
 import koreanbots
 from discord.ext import commands, tasks
-from Tools.var import errorcolor
+from tool import errorcolor, get_prefix
+
 
 with open("token.bin", "rb") as tokenfile:
     token = load(tokenfile)
 mentions = discord.AllowedMentions.all()
 mentions.replied_user = False
 bot = commands.Bot(
-    command_prefix=("ㅉ", "짤 "),
+    command_prefix=get_prefix,
     allowed_mentions=mentions,
     owner_ids=(745848200195473490,),
     intents=discord.Intents.all(),

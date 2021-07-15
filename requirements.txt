@@ -4,3 +4,4 @@ EZPaginator
 aiohttp
 aiofiles
 koreanbots
+aiosqlite

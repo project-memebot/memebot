@@ -5,7 +5,7 @@ import discord
 import aiohttp
 from EZPaginator import Paginator
 from discord.ext import commands, tasks
-from Tools.var import embedcolor
+from tool import embedcolor
 from datetime import datetime, timedelta
 import aiofiles
 
