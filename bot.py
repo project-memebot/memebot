@@ -4,10 +4,17 @@ from itertools import cycle
 from os import listdir
 from os.path import isfile
 from pickle import load
+import aiosqlite
 import discord
 import koreanbots
 from discord.ext import commands, tasks
-from tool import errorcolor, get_prefix
+from tool import (
+    errorcolor,
+    get_prefix,
+    CommandOnCooldown,
+    MaxConcurrencyReached,
+    UserOnBlacklist,
+)
 
 
 with open("token.bin", "rb") as tokenfile:
@@ -60,7 +67,7 @@ async def on_ready():
                 large_image_url=bot.user.avatar_url,
             ),
             discord.Activity(
-                name="http://koreanbots.kro.kr",
+                name="http://koreanbots.memebot.kro.kr",
                 type=discord.ActivityType.watching,
                 large_image_url=bot.user.avatar_url,
             ),
@@ -111,47 +118,36 @@ async def change_presence():
 
 @bot.before_invoke
 async def before_invoke(ctx):
+    if ctx.author.id in bot.owner_ids:
+        return
+    async with aiosqlite.connect("memebot.db", isolation_level=None) as cur:
+        async with cur.execute(
+            "SELECT * FROM blacklist WHERE id=?", (ctx.author.id,)
+        ) as result:
+            result = await result.fetchall()
+            if result:
+                await ctx.reply(f"{ctx.author} 님은 `{result[0][1]}`의 사유로 차단되셨습니다.")
+                raise UserOnBlacklist
+    if ctx.author.id in using_cmd:
+        await ctx.reply("현재 실행중인 명령어를 먼저 끝내 주세요")
+        raise MaxConcurrencyReached
+    if (
+        ctx.author.id in cooldown
+        and (datetime.datetime.utcnow() - cooldown[ctx.author.id]).seconds < 3
+    ):
+        retry_after = datetime.datetime.utcnow() - cooldown[ctx.author.id]
+        await ctx.reply(f"현재 쿨타임에 있습니다.\n{retry_after.seconds}초 후 다시 시도해 주세요")
+        raise CommandOnCooldown
     using_cmd.append(ctx.author.id)
-    if ctx.author.id in bot.owner_ids and ctx.author.id in cooldown:
-        del cooldown[ctx.author.id]
+    cooldown[ctx.author.id] = datetime.datetime.utcnow()
 
 
 @bot.after_invoke
 async def after_invoke(ctx):
-    using_cmd.remove(ctx.author.id)
-
-
-@bot.event
-async def on_message(message):
-    conn = sql.connect("memebot.db", isolation_level=None)
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM blacklist WHERE id=?", (message.author.id,))
-    if cur.fetchall():
-        return
-    cur.execute("SELECT * FROM customprefix WHERE guild_id=?", (message.guild.id,))
-    data = cur.fetchall()
-    if data:
-        if not message.content.startswith(data[0][1]):
-            return None
-        message.content = "ㅉ" + "".join(message.content.split(data[0][1])[1:])
-    else:
-        if not message.content.startswith(bot.command_prefix):
-            return None
-    conn.close()
-    if message.author.id in bot.owner_ids:
-        return await bot.process_commands(message)
-    if message.author.id in using_cmd:
-        return await message.channel.send("현재 실행중인 명령어를 먼저 끝내 주세요.")
-    if (
-        message.author.id in cooldown
-        and (datetime.datetime.utcnow() - cooldown[message.author.id]).seconds < 3
-    ):
-        retry_after = datetime.datetime.utcnow() - cooldown[message.author.id]
-        return await message.channel.send(
-            f"현재 쿨타임에 있습니다.\n{retry_after.seconds}초 후 다시 시도해 주세요"
-        )
-    await bot.process_commands(message)
-    cooldown[message.author.id] = datetime.datetime.utcnow()
+    try:
+        using_cmd.remove(ctx.author.id)
+    except ValueError:
+        pass
 
 
 @bot.event

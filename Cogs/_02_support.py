@@ -74,7 +74,7 @@ class Support(commands.Cog, name="지원"):
             return await ctx.reply(embed=embed)
         cmd = self.bot.get_command(help_)
         if cmd is None or (not cmd.enabled):
-            return
+            return await ctx.reply(f"{cmd} 명령어를 찾을 수 없습니다.")
         embed = discord.Embed(
             title=f"도움말",
             description=f"**{cmd.qualified_name if cmd.parents else cmd.name} \
@@ -87,9 +87,7 @@ class Support(commands.Cog, name="지원"):
         )
         embed.add_field(
             name="사용법",
-            value="`" + prefix + (cmd.qualified_name + " ")
-            if cmd.parents
-            else cmd.name + +("" if cmd.usage is None else cmd.usage) + "`",
+            value=f"`{prefix}{cmd.qualified_name if cmd.parents else cmd.name} {'' if cmd.usage is None else cmd.usage}`",
         )
         await ctx.reply(embed=embed)
 
