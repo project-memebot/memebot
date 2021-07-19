@@ -43,7 +43,7 @@ async def on_ready():
     global cmdlogger
     cmdlogger = logging.getLogger('command')
     cmdlogger.setLevel(logging.INFO)
-    cmdhandler = logging.FileHandler()
+    cmdhandler = logging.FileHandler('command.log')
     cmdhandler.setLevel(logging.INFO)
     cmdlogger.addHandler(cmdhandler)
     global presences
