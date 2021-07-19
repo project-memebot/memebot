@@ -30,9 +30,6 @@ bot = commands.Bot(
 )
 cooldown = {}
 using_cmd = []
-with open("koreanbots_token.bin", "rb") as f:
-    koreanbots_token = load(f)
-BOT = koreanbots.Koreanbots(bot, koreanbots_token, run_task=True)
 
 presences = []
 cmdlogger = ''
@@ -112,12 +109,25 @@ async def on_ready():
     bot.load_extension("jishaku")
     print("jishaku")
     change_presence.start()
+    update_koreanbots.start()
     await bot.get_channel(852767242704650290).send("켜짐")
 
 
 @tasks.loop(seconds=7)
 async def change_presence():
     await bot.change_presence(activity=next(presences))
+
+
+@tasks.loop(minutes=3)
+async def update_koreanbots():
+    with open('koreanbots_token.bin', 'rb') as f:
+        koreanbots_token = load(f)
+    async with aiohttp.ClientSession() as session:
+        async with session.post('https://koreanbots.dev/v2/bots/852802390083371028/stats',
+                                data={'servers': len(bot.guilds), 'shards': 1},
+                                headers={'Content-Type': 'application/json', 'Authorization': koreanbots_token}) as res:
+            if res['code'] != 200:
+                await (bot.get_channel(852767242704650290)).send(f'Koreanbots API 요청에 실패함\n{res}')
 
 
 @bot.before_invoke
