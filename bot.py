@@ -87,13 +87,11 @@ async def on_ready():
             "CREATE TABLE IF NOT EXISTS customprefix (guild_id INTEGER PRIMARY KEY, prefix text)"
         )
         # 유저가 업로드한 밈들 보낼 웹훅
-        async with cur:
-            async with open("backup.sql", "w", encoding="UTF-8") as backupfile:
-                for line in await cur.iterdump():
-                    backupfile.write(f"{line}\n")
+
+    copy2('memebot.db', 'backup.db')
     await (bot.get_channel(852767243360403497)).send(
         str(datetime.datetime.utcnow() + datetime.timedelta(hours=9)),
-        file=discord.File("backup.sql"),
+        file=discord.File("backup.db"),
     )
     print("ready")
     cogs = [j if isfile("Cogs/" + j) else "" for j in listdir("Cogs")]

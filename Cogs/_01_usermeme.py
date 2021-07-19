@@ -8,6 +8,7 @@ from tool import embedcolor
 from datetime import datetime, timedelta
 import aiofiles
 import aiosqlite as aiosql
+from shutil import copy2
 
 
 class Usermeme(commands.Cog, name="짤 공유"):
@@ -22,13 +23,9 @@ class Usermeme(commands.Cog, name="짤 공유"):
 
     @tasks.loop(minutes=15)
     async def _backupdb(self):
-        async with aiosql.connect('memebot.db') as cur:
-            async with cur:
-                async with open("backup.sql", "w") as f:
-                    for line in await cur.iterdump():
-                        f.write(f"{line}\n")
+        copy2('memebot.db', 'backup.db')
         await (self.bot.get_channel(852767243360403497)).send(
-            str(datetime.utcnow() + timedelta(hours=9)), file=discord.File("backup.sql")
+            str(datetime.utcnow() + timedelta(hours=9)), file=discord.File("backup.db")
         )
 
     @commands.command(
