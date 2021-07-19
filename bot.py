@@ -171,7 +171,7 @@ async def after_invoke(ctx):
 @bot.event
 async def on_message(message):
     if bot.user.mentioned_in(message):
-        await message.channel.send(f'{message.guild} 서버의 접두사는 `{get_prefix(_bot=bot, message=message)}`입니다.')
+        await message.channel.send(f'{message.guild} 서버의 접두사는 `{await get_prefix(_bot=bot, message=message)}`입니다.')
 
 
 @bot.event
