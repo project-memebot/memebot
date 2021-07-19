@@ -14,7 +14,7 @@ from tool import (
     MaxConcurrencyReached,
     UserOnBlacklist,
 )
-
+from shutil import copy2
 
 with open("token.bin", "rb") as tokenfile:
     token = load(tokenfile)
