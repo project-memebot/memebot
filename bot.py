@@ -120,7 +120,7 @@ async def change_presence():
     await bot.change_presence(activity=next(presences))
 
 
-@tasks.loop(minutes=3)
+@tasks.loop(minutes=30)
 async def update_koreanbots():
     with open('koreanbots_token.bin', 'rb') as f:
         koreanbots_token = load(f)
