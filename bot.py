@@ -39,7 +39,7 @@ cmdlogger = ''
 @bot.event
 async def on_ready():
     global cmdlogger
-    cmdlogger = logging.getLogger('command')
+    cmdlogger = logging.getLogger()
     cmdlogger.setLevel(logging.INFO)
     cmdhandler = logging.FileHandler('command.log')
     cmdhandler.setLevel(logging.INFO)
@@ -135,6 +135,7 @@ async def update_koreanbots():
 
 @bot.before_invoke
 async def before_invoke(ctx):
+    global cmdlogger
     if ctx.author.id in bot.owner_ids:
         return
     async with aiosql.connect("memebot.db", isolation_level=None) as cur:
@@ -172,6 +173,7 @@ async def after_invoke(ctx):
 async def on_message(message):
     if bot.user.mentioned_in(message):
         await message.channel.send(f'{message.guild} 서버의 접두사는 `{await get_prefix(_bot=bot, message=message)}`입니다.')
+    await bot.process_commands(message)
 
 
 @bot.event
