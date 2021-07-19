@@ -4,6 +4,7 @@ from os import listdir
 from os.path import isfile
 from pickle import load
 import aiosqlite as aiosql
+import aiohttp
 import discord
 import koreanbots
 from discord.ext import commands, tasks
@@ -110,6 +111,7 @@ async def on_ready():
     print("jishaku")
     change_presence.start()
     update_koreanbots.start()
+    await update_koreanbots()
     await bot.get_channel(852767242704650290).send("켜짐")
 
 
@@ -123,11 +125,12 @@ async def update_koreanbots():
     with open('koreanbots_token.bin', 'rb') as f:
         koreanbots_token = load(f)
     async with aiohttp.ClientSession() as session:
-        async with session.post('https://koreanbots.dev/v2/bots/852802390083371028/stats',
+        async with session.post('https://koreanbots.dev/api/v2/bots/852802390083371028/stats',
                                 data={'servers': len(bot.guilds), 'shards': 1},
-                                headers={'Content-Type': 'application/json', 'Authorization': koreanbots_token}) as res:
-            if res['code'] != 200:
-                await (bot.get_channel(852767242704650290)).send(f'Koreanbots API 요청에 실패함\n{res}')
+                                headers={'Authorization': koreanbots_token}) as res:
+            if res.status != 200:
+                print(res)
+                await (bot.get_channel(852767242704650290)).send(f'Koreanbots API 요청에 실패함\n{await res.json()}')
 
 
 @bot.before_invoke
