@@ -27,6 +27,9 @@ class Usermeme(commands.Cog, name="짤 공유"):
         await (self.bot.get_channel(852767243360403497)).send(
             str(datetime.utcnow() + timedelta(hours=9)), file=discord.File("backup.db")
         )
+        await (self.bot.get_channel(852767243360403497)).send(
+            str(datetime.utcnow() + timedelta(hours=9)), file=discord.File("command.log")
+        )
 
     @commands.command(
         name="업로드",
@@ -84,7 +87,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
             )
         except discord.Forbidden:
             return await ctx.send("파일 크기가 너무 큽니다")
-        with aiosql.connect('memebot.db', isolation_level=None) as cur:
+        async with aiosql.connect('memebot.db', isolation_level=None) as cur:
             await cur.execute(
                 "INSERT INTO usermeme(id, uploader_id, title, url) VALUES(?, ?, ?, ?)",
                 (msg.id, ctx.author.id, title, msg.attachments[0].url),
@@ -97,7 +100,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
         help="유저들이 올린 짤들 중에서 랜덤으로 뽑아 올려줍니다",
     )
     async def _random(self, ctx):
-        async with aiosql.connect("memebot.db", isolation_level=None) as cur:
+        async with aiosql.connect("memebot.db") as cur:
             async with cur.execute('SELECT * FROM usermeme') as result:
                 meme = choice(await result.fetchall())
         embed = discord.Embed(title=meme[2], color=embedcolor)

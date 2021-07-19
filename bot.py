@@ -14,6 +14,7 @@ from tool import (
     MaxConcurrencyReached,
     UserOnBlacklist,
 )
+import logging
 from shutil import copy2
 
 with open("token.bin", "rb") as tokenfile:
@@ -25,6 +26,7 @@ bot = commands.Bot(
     allowed_mentions=mentions,
     owner_ids=(745848200195473490,),
     intents=discord.Intents.all(),
+    strip_after_prefix=True
 )
 cooldown = {}
 using_cmd = []
@@ -33,10 +35,17 @@ with open("koreanbots_token.bin", "rb") as f:
 BOT = koreanbots.Koreanbots(bot, koreanbots_token, run_task=True)
 
 presences = []
+cmdlogger = ''
 
 
 @bot.event
 async def on_ready():
+    global cmdlogger
+    cmdlogger = logging.getLogger('command')
+    cmdlogger.setLevel(logging.INFO)
+    cmdhandler = logging.FileHandler()
+    cmdhandler.setLevel(logging.INFO)
+    cmdlogger.addHandler(cmdhandler)
     global presences
     presences = cycle(
         [
@@ -135,6 +144,7 @@ async def before_invoke(ctx):
         raise CommandOnCooldown
     using_cmd.append(ctx.author.id)
     cooldown[ctx.author.id] = datetime.datetime.utcnow()
+    cmdlogger.info(f'{ctx.author}({ctx.author.id})\n{ctx.message.content}\n{ctx.message.created_at}')
 
 
 @bot.after_invoke
