@@ -169,6 +169,12 @@ async def after_invoke(ctx):
 
 
 @bot.event
+async def on_message(message):
+    if bot.user.mentioned_in(message):
+        await message.channel.send(f'{message.guild} 서버의 접두사는 `{get_prefix(_bot=bot, message=message)}`입니다.')
+
+
+@bot.event
 async def on_command_error(ctx, error):
     if type(error) in [
         commands.CommandNotFound,
@@ -185,7 +191,7 @@ async def on_command_error(ctx, error):
     )
     embed.add_field(
         name="오류 발생자", value=f"{ctx.author} ({ctx.author.id})\n{ctx.author.mention}"
-    )
+ㄴ    )
     embed.add_field(
         name="오류 발생지",
         value=f"{ctx.guild.name} ({ctx.guild.id})\n{ctx.channel.name} ({ctx.channel.id})",
