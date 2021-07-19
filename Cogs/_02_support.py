@@ -1,7 +1,7 @@
+import aiosqlite as aiosql
 import discord
 from discord.ext import commands
 from tool import embedcolor
-import sqlite3 as sql
 
 
 class Support(commands.Cog, name="지원"):
@@ -41,12 +41,10 @@ class Support(commands.Cog, name="지원"):
         name="도움", aliases=("ㄷㅇ", "help"), help="봇의 명령어들을 보여줍니다", usage="[명령어]"
     )
     async def _help(self, ctx, *, help_=None):
-        conn = sql.connect("memebot.db")
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM customprefix WHERE guild_id=?", (ctx.guild.id,))
-        prefix = cur.fetchall()
-        prefix = prefix[0][1] if prefix else "ㅉ"
-        conn.close()
+        async with aiosql.connect('memebot.db') as cur:
+            async with cur.execute("SELECT * FROM customprefix WHERE guild_id=?", (ctx.guild.id,)) as result:
+                prefix = await result.fetchall()
+                prefix = prefix[0][1] if prefix else "ㅉ"
         if help_ is None:
             embed = discord.Embed(
                 title="도움말",
@@ -112,17 +110,15 @@ class Support(commands.Cog, name="지원"):
     )
     @commands.has_permissions(manage_guild=True)
     async def _prefix(self, ctx, *, prefix):
-        conn = sql.connect("memebot.db", isolation_level=None)
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM customprefix WHERE guild_id=?", (ctx.guild.id,))
-        if not cur.fetchall():
-            cur.execute(f'INSERT INTO customprefix VALUES({ctx.guild.id}, "{prefix}")')
-        else:
-            cur.execute(
-                "UPDATE customprefix SET prefix=? WHERE guild_id=?",
-                (prefix, ctx.guild.id),
-            )
-        conn.close()
+        async with aiosql.connect("memebot.db", isolation_level=None) as cur:
+            async with cur.execute("SELECT * FROM customprefix WHERE guild_id=?", (ctx.guild.id,)) as result:
+                if not await result.fetchall():
+                    await cur.execute(f'INSERT INTO customprefix VALUES({ctx.guild.id}, "{prefix}")')
+                else:
+                    await cur.execute(
+                        "UPDATE customprefix SET prefix=? WHERE guild_id=?",
+                        (prefix, ctx.guild.id),
+                    )
         await ctx.reply(f"{ctx.guild} 서버의 접두사가 `{prefix}`로 설정되었습니다.")
 
 

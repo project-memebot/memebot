@@ -1,4 +1,3 @@
-import sqlite3 as sql
 from asyncio import TimeoutError
 from random import choice
 import discord
@@ -8,6 +7,7 @@ from discord.ext import commands, tasks
 from tool import embedcolor
 from datetime import datetime, timedelta
 import aiofiles
+import aiosqlite as aiosql
 
 
 class Usermeme(commands.Cog, name="짤 공유"):
@@ -22,12 +22,11 @@ class Usermeme(commands.Cog, name="짤 공유"):
 
     @tasks.loop(minutes=15)
     async def _backupdb(self):
-        conn = sql.connect("memebot.db")
-        with conn:
-            with open("backup.sql", "w") as f:
-                for line in conn.iterdump():
-                    f.write(f"{line}\n")
-        conn.close()
+        async with aiosql.connect('memebot.db') as cur:
+            async with cur:
+                async with open("backup.sql", "w") as f:
+                    for line in await cur.iterdump():
+                        f.write(f"{line}\n")
         await (self.bot.get_channel(852767243360403497)).send(
             str(datetime.utcnow() + timedelta(hours=9)), file=discord.File("backup.sql")
         )
@@ -38,8 +37,6 @@ class Usermeme(commands.Cog, name="짤 공유"):
         help="유저들이 공유하고 싶은 짤을 올리는 기능입니다",
     )
     async def _upload(self, ctx):
-        conn = sql.connect("memebot.db", isolation_level=None)
-        cur = conn.cursor()
         await ctx.send("사진(파일 또는 URL)을 업로드해 주세요.")
         try:
             msg = await self.bot.wait_for(
@@ -90,12 +87,12 @@ class Usermeme(commands.Cog, name="짤 공유"):
             )
         except discord.Forbidden:
             return await ctx.send("파일 크기가 너무 큽니다")
-        cur.execute(
-            "INSERT INTO usermeme(id, uploader_id, title, url) VALUES(?, ?, ?, ?)",
-            (msg.id, ctx.author.id, title, msg.attachments[0].url),
-        )
+        with aiosql.connect('memebot.db', isolation_level=None) as cur:
+            await cur.execute(
+                "INSERT INTO usermeme(id, uploader_id, title, url) VALUES(?, ?, ?, ?)",
+                (msg.id, ctx.author.id, title, msg.attachments[0].url),
+            )
         await ctx.reply("짤 업로드 완료")
-        conn.close()
 
     @commands.command(
         name="랜덤",
@@ -103,11 +100,9 @@ class Usermeme(commands.Cog, name="짤 공유"):
         help="유저들이 올린 짤들 중에서 랜덤으로 뽑아 올려줍니다",
     )
     async def _random(self, ctx):
-        conn = sql.connect("memebot.db", isolation_level=None)
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM usermeme")
-        meme = choice(cur.fetchall())
-        conn.close()
+        async with aiosql.connect("memebot.db", isolation_level=None) as cur:
+            async with cur.execute('SELECT * FROM usermeme') as result:
+                meme = choice(await result.fetchall())
         embed = discord.Embed(title=meme[2], color=embedcolor)
         embed.set_image(url=meme[3])
         member = await self.bot.fetch_user(meme[1])
@@ -127,12 +122,10 @@ class Usermeme(commands.Cog, name="짤 공유"):
         help="올린 짤의 목록을 보거나 지우거나 수정합니다",
     )
     async def meme(self, ctx):
-        conn = sql.connect("memebot.db")
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM customprefix WHERE guild_id=?", (ctx.guild.id,))
-        prefix = cur.fetchall()
+        async with aiosql.connect("memebot.db") as cur:
+            async with cur.execute("SELECT * FROM customprefix WHERE guild_id=?", (ctx.guild.id,)) as result:
+                prefix = await result.fetchall()
         prefix = prefix[0][1] if prefix else "ㅉ"
-        conn.close()
         await ctx.reply(f"{prefix}내짤 <목록/제거/수정> [짤 ID]\n(짤 ID는 목록 명령어 사용시 불필요)")
 
     @meme.command(
@@ -141,10 +134,9 @@ class Usermeme(commands.Cog, name="짤 공유"):
         help="내가 올린 짤의 목록을 봅니다",
     )
     async def _mymeme(self, ctx):
-        conn = sql.connect("memebot.db", isolation_level=None)
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM usermeme WHERE uploader_id=?", (ctx.author.id,))
-        memes = cur.fetchall()
+        async with aiosql.connect("memebot.db", isolation_level=None) as cur:
+            async with cur.execute("SELECT * FROM usermeme WHERE uploader_id=?", (ctx.author.id,)) as result:
+                memes = await result.fetchall()
         embeds = list()
         for i in memes:
             embed = discord.Embed(
@@ -162,7 +154,6 @@ class Usermeme(commands.Cog, name="짤 공유"):
             use_extend=True,
         )
         await page.start()
-        conn.close()
 
     @meme.command(
         name="제거",
@@ -175,13 +166,12 @@ class Usermeme(commands.Cog, name="짤 공유"):
             return await ctx.send(
                 f"사용법은 `{ctx.command.usage}`입니다.\n(짤 ID는 내짤 명령어에서 확인 할 수 있습니다.)"
             )
-        conn = sql.connect("memebot.db", isolation_level=None)
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM usermeme WHERE id=?", (memeid,))
-        try:
-            result = cur.fetchall()[0]
-        except IndexError:
-            return await ctx.send("짤을 찾을 수 없습니다")
+        async with aiosql.connect("memebot.db") as cur:
+            async with cur.execute("SELECT * FROM usermeme WHERE id=?", (memeid,)) as result:
+                try:
+                    result = await result.fetchall()[0]
+                except IndexError:
+                    return await ctx.send("짤을 찾을 수 없습니다")
         embed = discord.Embed(title=result[2], color=embedcolor)
         embed.set_image(url=result[3])
         m = await ctx.send("이 짤을 삭제할까요?\n`ㅇ`: OK, `ㄴ`: No", embed=embed)
@@ -195,8 +185,8 @@ class Usermeme(commands.Cog, name="짤 공유"):
         if msg.content != "ㅇ":
             return await ctx.send("취소되었습니다")
         await m.delete()
-        cur.execute("DELETE FROM usermeme WHERE id=?", (memeid,))
-        conn.close()
+        async with aiosql.connect("memebot.db", isolation_level=None) as cur:
+            await cur.execute("DELETE FROM usermeme WHERE id=?", (memeid,))
         await ctx.reply("삭제 완료")
 
     @meme.command(
@@ -210,11 +200,10 @@ class Usermeme(commands.Cog, name="짤 공유"):
             return await ctx.send(
                 f"사용법은 `{ctx.command.usage}`입니다.\n(짤 ID는 내짤 명령어에서 확인 할 수 있습니다.)"
             )
-        conn = sql.connect("memebot.db", isolation_level=None)
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM usermeme WHERE id=?", (memeid,))
-        if not cur.fetchall():
-            await ctx.send("짤을 찾을 수 없습니다")
+        async with aiosql.connect("memebot.db") as cur:
+            async with cur.execute("SELECT * FROM usermeme WHERE id=?", (memeid,)) as result:
+                if not await result.fetchall():
+                    await ctx.send("짤을 찾을 수 없습니다")
         await ctx.send("바꿀 제목을 입력해 주세요")
         try:
             msg = await self.bot.wait_for(
@@ -223,8 +212,8 @@ class Usermeme(commands.Cog, name="짤 공유"):
             )
         except TimeoutError:
             return await ctx.send("취소되었습니다")
-        cur.execute("UPDATE usermeme SET title=? WHERE id=?", (msg.content, memeid))
-        conn.close()
+        async with aiosql.connect("memebot.db", isolation_level=None) as cur:
+            await cur.execute("UPDATE usermeme SET title=? WHERE id=?", (msg.content, memeid))
         await ctx.reply("제목이 수정되었습니다")
 
 

@@ -1,10 +1,9 @@
 import datetime
-import sqlite3 as sql
 from itertools import cycle
 from os import listdir
 from os.path import isfile
 from pickle import load
-import aiosqlite
+import aiosqlite as aiosql
 import discord
 import koreanbots
 from discord.ext import commands, tasks
@@ -73,27 +72,25 @@ async def on_ready():
             ),
         ]
     )
-    conn = sql.connect("memebot.db", isolation_level=None)
-    cur = conn.cursor()
-    cur.execute(
-        "CREATE TABLE IF NOT EXISTS usermeme (id INTEGER PRIMARY KEY, uploader_id INTEGER, title text, url text)"
-    )
-    # 유저가 업로드한 밈들 id/설명 등 매칭
-    cur.execute(
-        "CREATE TABLE IF NOT EXISTS blacklist (id INTEGER PRIMARY KEY, reason text)"
-    )
-    cur.execute(
-        "CREATE TABLE IF NOT EXISTS webhooks (url text PRIMARY KEY, guild_id INTEGER)"
-    )
-    cur.execute(
-        "CREATE TABLE IF NOT EXISTS customprefix (guild_id INTEGER PRIMARY KEY, prefix text)"
-    )
-    # 유저가 업로드한 밈들 보낼 웹훅
-    with conn:
-        with open("backup.sql", "w", encoding="UTF-8") as backupfile:
-            for line in conn.iterdump():
-                backupfile.write(f"{line}\n")
-    conn.close()
+    async with aiosql.connect("memebot.db", isolation_level=None) as cur:
+        await cur.execute(
+            "CREATE TABLE IF NOT EXISTS usermeme (id INTEGER PRIMARY KEY, uploader_id INTEGER, title text, url text)"
+        )
+        # 유저가 업로드한 밈들 id/설명 등 매칭
+        await cur.execute(
+            "CREATE TABLE IF NOT EXISTS blacklist (id INTEGER PRIMARY KEY, reason text)"
+        )
+        await cur.execute(
+            "CREATE TABLE IF NOT EXISTS webhooks (url text PRIMARY KEY, guild_id INTEGER)"
+        )
+        await cur.execute(
+            "CREATE TABLE IF NOT EXISTS customprefix (guild_id INTEGER PRIMARY KEY, prefix text)"
+        )
+        # 유저가 업로드한 밈들 보낼 웹훅
+        async with cur:
+            async with open("backup.sql", "w", encoding="UTF-8") as backupfile:
+                for line in await cur.iterdump():
+                    backupfile.write(f"{line}\n")
     await (bot.get_channel(852767243360403497)).send(
         str(datetime.datetime.utcnow() + datetime.timedelta(hours=9)),
         file=discord.File("backup.sql"),
@@ -111,7 +108,7 @@ async def on_ready():
     await bot.get_channel(852767242704650290).send("켜짐")
 
 
-@tasks.loop(seconds=5)
+@tasks.loop(seconds=7)
 async def change_presence():
     await bot.change_presence(activity=next(presences))
 
@@ -120,7 +117,7 @@ async def change_presence():
 async def before_invoke(ctx):
     if ctx.author.id in bot.owner_ids:
         return
-    async with aiosqlite.connect("memebot.db", isolation_level=None) as cur:
+    async with aiosql.connect("memebot.db", isolation_level=None) as cur:
         async with cur.execute(
             "SELECT * FROM blacklist WHERE id=?", (ctx.author.id,)
         ) as result:
@@ -174,6 +171,7 @@ async def on_command_error(ctx, error):
     )
     embed.add_field(name="오류 내용", value=f"```py\n{error}```")
     await (bot.get_channel(852767242704650290)).send(embed=embed)
+    await ctx.message.add_reaction('⚠️')
 
 
 bot.remove_command("help")
