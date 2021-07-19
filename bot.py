@@ -191,7 +191,7 @@ async def on_command_error(ctx, error):
     )
     embed.add_field(
         name="오류 발생자", value=f"{ctx.author} ({ctx.author.id})\n{ctx.author.mention}"
-ㄴ    )
+    )
     embed.add_field(
         name="오류 발생지",
         value=f"{ctx.guild.name} ({ctx.guild.id})\n{ctx.channel.name} ({ctx.channel.id})",
