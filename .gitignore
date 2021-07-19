@@ -6,6 +6,5 @@ __pycache__
 __pycache__/
 .bin
 *.bin
-token.bin
 *.sql
 .sql
