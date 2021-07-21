@@ -21,15 +21,15 @@ async def sendmeme(bot, memeid, msg):
             "SELECT * FROM usermeme WHERE id=?", (memeid,)
         ) as result:
             result = (await result.fetchall())[0]
-            if not result:
-                raise ValueError("Can't find meme")
-            embed = discord.Embed(title=result[2], color=embedcolor)
-            embed.set_image(url=result[3])
-            uploader = await bot.fetch_user(result[1])
-            embed.set_author(icon_url=uploader.avatar_url, name=str(uploader))
-            embed.set_footer(text=f"짤 ID: {result[0]}")
-            await msg.edit(embed=embed)
-            return await message.channel.fetch_message(message.id)
+    if not result:
+        raise ValueError("Can't find meme")
+    embed = discord.Embed(title=result[2], color=embedcolor)
+    embed.set_image(url=result[3])
+    uploader = await bot.fetch_user(result[1])
+    embed.set_author(icon_url=uploader.avatar_url, name=str(uploader))
+    embed.set_footer(text=f"짤 ID: {result[0]}")
+    await msg.edit(embed=embed)
+    return await msg.channel.fetch_message(msg.id)
 
 
 class CommandOnCooldown(Exception):

@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import aiofiles
 import aiosqlite as aiosql
 from shutil import copy2
+import asyncio
 
 
 class Usermeme(commands.Cog, name="짤 공유"):
@@ -136,48 +137,27 @@ class Usermeme(commands.Cog, name="짤 공유"):
     async def _mymeme(self, ctx):
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
             async with cur.execute(
-                "SELECT id FROM usermeme WHERE uploader_id=?", (ctx.author.id,)
+                "SELECT * FROM usermeme WHERE uploader_id=?", (ctx.author.id,)
             ) as result:
-                memes = [i[0] for i in await result.fetchall()]
-        msg = await sendmeme(
+                memes = await result.fetchall()
+        embeds = [
+            discord.Embed(
+                title=f"{i[2] if i[2] != '' else '`제목 없음`'} - ({memes.index(i) + 1}/{len(memes)})", color=embedcolor
+            )
+            .set_image(url=i[3])
+            .set_footer(text=f"밈 ID: {i[0]}")
+            for i in memes
+        ]
+        message = await ctx.reply(embed=embeds[0])
+        page = Paginator(
             bot=self.bot,
-            memeid=memes[-1],
-            msg=await ctx.reply(
-                embed=discord.Embed(title="짤을 불러오는중...", color=embedcolor)
-            ),
+            message=message,
+            embeds=embeds,
+            use_extend=True,
+            timeout=10,
+            only=ctx.author,
         )
-        await msg.add_reaction("⏪")
-        await msg.add_reaction("◀️")
-        await msg.add_reaction("⏹️")
-        await msg.add_reaction("▶️")
-        await msg.add_reaction("⏩")
-        index = 0
-        while True:
-            try:
-                reaction, _user = await self.bot.wait_for(
-                    "reaction",
-                    check=lambda _reaction, user: user == ctx.author
-                    and _reaction.message == msg,
-                )
-            except TimeoutError:
-                break
-            if self.bot.user.id not in [
-                i.id for i in (await _reaction.users().flatten())
-            ]:
-                continue
-            if reaction.emoji == "⏪":
-                index = 0
-            elif reaction.emoji == "◀️":
-                if index != 0:
-                    index -= 1
-            elif reaction.emoji == "⏹️":
-                break
-            elif reaction.emoji == "▶️":
-                if index + 1 < len(memes):
-                    index += 1
-            else:
-                index = len(memes) - 1
-            msg = await sendmeme(bot=self.bot, memeid=memes[index], msg=msg)
+        await page.start()
 
     @meme.command(
         name="제거",
