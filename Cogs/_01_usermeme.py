@@ -104,7 +104,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
         async with aiosql.connect("memebot.db") as cur:
             async with cur.execute("SELECT id FROM usermeme") as result:
                 meme = choice(await result.fetchall())[0]
-        await send_meme(
+        await sendmeme(
             bot=self.bot,
             memeid=meme,
             msg=await ctx.reply(
@@ -156,13 +156,15 @@ class Usermeme(commands.Cog, name="짤 공유"):
             try:
                 reaction, _user = await self.bot.wait_for(
                     "reaction",
-                    check=lambda reaction, user: self.bot.user.id
-                    in [i.id for i in await reaction.users().flatten()]
-                    and user == ctx.author
-                    and reaction.message == msg,
+                    check=lambda _reaction, user: user == ctx.author
+                    and _reaction.message == msg,
                 )
             except TimeoutError:
                 break
+            if self.bot.user.id not in [
+                i.id for i in (await _reaction.users().flatten())
+            ]:
+                continue
             if reaction.emoji == "⏪":
                 index = 0
             elif reaction.emoji == "◀️":

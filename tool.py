@@ -1,5 +1,5 @@
 import aiosqlite as aiosql
-import discoord
+import discord
 
 
 errorcolor = 0xFFFF00
