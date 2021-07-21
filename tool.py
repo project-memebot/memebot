@@ -28,7 +28,8 @@ async def sendmeme(bot, memeid, msg):
             uploader = await bot.fetch_user(result[1])
             embed.set_author(icon_url=uploader.avatar_url, name=str(uploader))
             embed.set_footer(text=f"짤 ID: {result[0]}")
-            return await msg.edit(embed=embed)
+            await msg.edit(embed=embed)
+            return await message.channel.fetch_message(message.id)
 
 
 class CommandOnCooldown(Exception):

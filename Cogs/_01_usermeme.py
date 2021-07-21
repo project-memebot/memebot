@@ -139,7 +139,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 "SELECT id FROM usermeme WHERE uploader_id=?", (ctx.author.id,)
             ) as result:
                 memes = [i[0] for i in await result.fetchall()]
-        msg = await send_meme(
+        msg = await sendmeme(
             bot=self.bot,
             memeid=memes[-1],
             msg=await ctx.reply(
@@ -177,7 +177,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
                     index += 1
             else:
                 index = len(memes) - 1
-            msg = await send_meme(bot=self.bot, memeid=memes[index], msg=msg)
+            msg = await sendmeme(bot=self.bot, memeid=memes[index], msg=msg)
 
     @meme.command(
         name="제거",
