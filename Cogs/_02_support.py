@@ -41,8 +41,10 @@ class Support(commands.Cog, name="지원"):
         name="도움", aliases=("ㄷㅇ", "help"), help="봇의 명령어들을 보여줍니다", usage="[명령어]"
     )
     async def _help(self, ctx, *, help_=None):
-        async with aiosql.connect('memebot.db') as cur:
-            async with cur.execute("SELECT * FROM customprefix WHERE guild_id=?", (ctx.guild.id,)) as result:
+        async with aiosql.connect("memebot.db") as cur:
+            async with cur.execute(
+                "SELECT * FROM customprefix WHERE guild_id=?", (ctx.guild.id,)
+            ) as result:
                 prefix = await result.fetchall()
                 prefix = prefix[0][1] if prefix else "ㅉ"
         if help_ is None:
@@ -111,9 +113,13 @@ class Support(commands.Cog, name="지원"):
     @commands.has_permissions(manage_guild=True)
     async def _prefix(self, ctx, *, prefix):
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
-            async with cur.execute("SELECT * FROM customprefix WHERE guild_id=?", (ctx.guild.id,)) as result:
+            async with cur.execute(
+                "SELECT * FROM customprefix WHERE guild_id=?", (ctx.guild.id,)
+            ) as result:
                 if not await result.fetchall():
-                    await cur.execute(f'INSERT INTO customprefix VALUES({ctx.guild.id}, "{prefix}")')
+                    await cur.execute(
+                        f'INSERT INTO customprefix VALUES({ctx.guild.id}, "{prefix}")'
+                    )
                 else:
                     await cur.execute(
                         "UPDATE customprefix SET prefix=? WHERE guild_id=?",

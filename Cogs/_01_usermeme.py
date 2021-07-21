@@ -4,7 +4,7 @@ import discord
 import aiohttp
 from EZPaginator import Paginator
 from discord.ext import commands, tasks
-from tool import embedcolor
+from tool import embedcolor, sendmeme, errorcolor
 from datetime import datetime, timedelta
 import aiofiles
 import aiosqlite as aiosql
@@ -101,18 +101,9 @@ class Usermeme(commands.Cog, name="짤 공유"):
     )
     async def _random(self, ctx):
         async with aiosql.connect("memebot.db") as cur:
-            async with cur.execute('SELECT * FROM usermeme') as result:
-                meme = choice(await result.fetchall())
-        embed = discord.Embed(title=meme[2], color=embedcolor)
-        embed.set_image(url=meme[3])
-        member = await self.bot.fetch_user(meme[1])
-        embed.set_author(
-            name=str(member),
-            icon_url=member.avatar_url,
-            url=f"https://discord.com/users/{member.id}",
-        )
-        embed.set_footer(text=f"짤 ID: {meme[0]}")
-        await ctx.reply(embed=embed)
+            async with cur.execute('SELECT id FROM usermeme') as result:
+                meme = choice(await result.fetchall())[0]
+        await send_meme(bot=self.bot, memeid=meme, msg=await ctx.reply(embed=discord.Embed(title='짤을 불러오는중...', color=embedcolor)))
 
     @commands.group(
         "내짤",
@@ -135,25 +126,33 @@ class Usermeme(commands.Cog, name="짤 공유"):
     )
     async def _mymeme(self, ctx):
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
-            async with cur.execute("SELECT * FROM usermeme WHERE uploader_id=?", (ctx.author.id,)) as result:
-                memes = await result.fetchall()
-        embeds = list()
-        for i in memes:
-            embed = discord.Embed(
-                title=f'{"**" + i[2] + "**" if i[2] != "" else i[2]} ({i[0]})',
-                color=embedcolor,
-            )
-            embed.set_author(name=f"내짤 목록 ({memes.index(i)+1}/{len(memes)} 페이지)")
-            embed.set_image(url=i[3])
-            embed.set_footer(text="짤 제목 뒤에 있는 글자는 짤 ID입니다.")
-            embeds.append(embed)
-        page = Paginator(
-            embeds=embeds,
-            bot=self.bot,
-            message=await ctx.reply(embed=embeds[0]),
-            use_extend=True,
-        )
-        await page.start()
+            async with cur.execute("SELECT id FROM usermeme WHERE uploader_id=?", (ctx.author.id,)) as result:
+                memes = [i[0] for i in await result.fetchall()]
+        msg = await send_meme(bot=self.bot, memeid=memes[-1], msg=await ctx.reply(embed=discord.Embed(title='짤을 불러오는중...', color=embedcolor)))
+        await msg.add_reaction('⏪')
+        await msg.add_reaction('◀️')
+        await msg.add_reaction('⏹️')
+        await msg.add_reaction('▶️')
+        await msg.add_reaction('⏩')
+        index = 0
+        while True:
+            try:
+                reaction, _user = await self.bot.wait_for('reaction', check=lambda reaction, user: self.bot.user.id in [i.id for i in await reaction.users().flatten()] and user == ctx.author and reaction.message == msg)
+            except TimeoutError:
+                break
+            if reaction.emoji == '⏪':
+                index = 0
+            elif reaction.emoji == '◀️':
+                if index != 0:
+                    index -= 1
+            elif reaction.emoji == '⏹️':
+                break
+            elif reaction.emoji == '▶️':
+                if index + 1 < len(memes):
+                    index += 1
+            else:
+                index = len(memes)-1
+            msg = await send_meme(bot=self.bot, memeid=memes[index], msg=msg)
 
     @meme.command(
         name="제거",
@@ -215,6 +214,14 @@ class Usermeme(commands.Cog, name="짤 공유"):
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
             await cur.execute("UPDATE usermeme SET title=? WHERE id=?", (msg.content, memeid))
         await ctx.reply("제목이 수정되었습니다")
+
+    @commands.command(name='조회', aliases=('ㅈㅎ',), usage='<짤 ID>', help='밈 ID로 짤을 찾습니다')
+    async def _findwithid(self, ctx, memeid: int):
+        msg = await ctx.reply(embed=discord.Embed(title='짤을 불러오는 중...', color=embedcolor)
+        try:
+            await sendmeme(bot=self.bot, id=memeid, msg=msg)
+        except ValueError:
+            await msg.edit(embed=discord.Embed(title='짤을 찾을 수 없습니다.', color=errorcolor))
 
 
 def setup(bot):

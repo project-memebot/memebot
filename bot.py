@@ -27,13 +27,13 @@ bot = commands.Bot(
     allowed_mentions=mentions,
     owner_ids=(745848200195473490,),
     intents=discord.Intents.all(),
-    strip_after_prefix=True
+    strip_after_prefix=True,
 )
 cooldown = {}
 using_cmd = []
 
 presences = []
-cmdlogger = ''
+cmdlogger = ""
 
 
 @bot.event
@@ -41,7 +41,7 @@ async def on_ready():
     global cmdlogger
     cmdlogger = logging.getLogger()
     cmdlogger.setLevel(logging.INFO)
-    cmdhandler = logging.FileHandler('command.log')
+    cmdhandler = logging.FileHandler("command.log")
     cmdhandler.setLevel(logging.INFO)
     cmdlogger.addHandler(cmdhandler)
     global presences
@@ -95,7 +95,7 @@ async def on_ready():
         )
         # 유저가 업로드한 밈들 보낼 웹훅
 
-    copy2('memebot.db', 'backup.db')
+    copy2("memebot.db", "backup.db")
     await (bot.get_channel(852767243360403497)).send(
         str(datetime.datetime.utcnow() + datetime.timedelta(hours=9)),
         file=discord.File("backup.db"),
@@ -122,15 +122,19 @@ async def change_presence():
 
 @tasks.loop(minutes=30)
 async def update_koreanbots():
-    with open('koreanbots_token.bin', 'rb') as f:
+    with open("koreanbots_token.bin", "rb") as f:
         koreanbots_token = load(f)
     async with aiohttp.ClientSession() as session:
-        async with session.post('https://koreanbots.dev/api/v2/bots/852802390083371028/stats',
-                                data={'servers': len(bot.guilds), 'shards': 1},
-                                headers={'Authorization': koreanbots_token}) as res:
+        async with session.post(
+            "https://koreanbots.dev/api/v2/bots/852802390083371028/stats",
+            data={"servers": len(bot.guilds), "shards": 1},
+            headers={"Authorization": koreanbots_token},
+        ) as res:
             if res.status != 200:
                 print(res)
-                await (bot.get_channel(852767242704650290)).send(f'Koreanbots API 요청에 실패함\n{await res.json()}')
+                await (bot.get_channel(852767242704650290)).send(
+                    f"Koreanbots API 요청에 실패함\n{await res.json()}"
+                )
 
 
 @bot.before_invoke
@@ -158,7 +162,9 @@ async def before_invoke(ctx):
         raise CommandOnCooldown
     using_cmd.append(ctx.author.id)
     cooldown[ctx.author.id] = datetime.datetime.utcnow()
-    cmdlogger.info(f'{ctx.author}({ctx.author.id})\n{ctx.message.content}\n{ctx.message.created_at}')
+    cmdlogger.info(
+        f"{ctx.author}({ctx.author.id})\n{ctx.message.content}\n{ctx.message.created_at}"
+    )
 
 
 @bot.after_invoke
@@ -172,7 +178,9 @@ async def after_invoke(ctx):
 @bot.event
 async def on_message(message):
     if bot.user.mentioned_in(message):
-        await message.channel.send(f'{message.guild} 서버의 접두사는 `{await get_prefix(_bot=bot, message=message)}`입니다.')
+        await message.channel.send(
+            f"{message.guild} 서버의 접두사는 `{await get_prefix(_bot=bot, message=message)}`입니다."
+        )
     await bot.process_commands(message)
 
 
@@ -200,7 +208,7 @@ async def on_command_error(ctx, error):
     )
     embed.add_field(name="오류 내용", value=f"```py\n{error}```")
     await (bot.get_channel(852767242704650290)).send(embed=embed)
-    await ctx.message.add_reaction('⚠️')
+    await ctx.message.add_reaction("⚠️")
 
 
 bot.remove_command("help")
