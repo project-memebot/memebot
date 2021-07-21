@@ -23,12 +23,13 @@ class Usermeme(commands.Cog, name="짤 공유"):
 
     @tasks.loop(minutes=15)
     async def _backupdb(self):
-        copy2('memebot.db', 'backup.db')
+        copy2("memebot.db", "backup.db")
         await (self.bot.get_channel(852767243360403497)).send(
             str(datetime.utcnow() + timedelta(hours=9)), file=discord.File("backup.db")
         )
         await (self.bot.get_channel(852767243360403497)).send(
-            str(datetime.utcnow() + timedelta(hours=9)), file=discord.File("command.log")
+            str(datetime.utcnow() + timedelta(hours=9)),
+            file=discord.File("command.log"),
         )
 
     @commands.command(
@@ -87,7 +88,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
             )
         except discord.Forbidden:
             return await ctx.send("파일 크기가 너무 큽니다")
-        async with aiosql.connect('memebot.db', isolation_level=None) as cur:
+        async with aiosql.connect("memebot.db", isolation_level=None) as cur:
             await cur.execute(
                 "INSERT INTO usermeme(id, uploader_id, title, url) VALUES(?, ?, ?, ?)",
                 (msg.id, ctx.author.id, title, msg.attachments[0].url),
@@ -101,9 +102,15 @@ class Usermeme(commands.Cog, name="짤 공유"):
     )
     async def _random(self, ctx):
         async with aiosql.connect("memebot.db") as cur:
-            async with cur.execute('SELECT id FROM usermeme') as result:
+            async with cur.execute("SELECT id FROM usermeme") as result:
                 meme = choice(await result.fetchall())[0]
-        await send_meme(bot=self.bot, memeid=meme, msg=await ctx.reply(embed=discord.Embed(title='짤을 불러오는중...', color=embedcolor)))
+        await send_meme(
+            bot=self.bot,
+            memeid=meme,
+            msg=await ctx.reply(
+                embed=discord.Embed(title="짤을 불러오는중...", color=embedcolor)
+            ),
+        )
 
     @commands.group(
         "내짤",
@@ -114,7 +121,9 @@ class Usermeme(commands.Cog, name="짤 공유"):
     )
     async def meme(self, ctx):
         async with aiosql.connect("memebot.db") as cur:
-            async with cur.execute("SELECT * FROM customprefix WHERE guild_id=?", (ctx.guild.id,)) as result:
+            async with cur.execute(
+                "SELECT * FROM customprefix WHERE guild_id=?", (ctx.guild.id,)
+            ) as result:
                 prefix = await result.fetchall()
         prefix = prefix[0][1] if prefix else "ㅉ"
         await ctx.reply(f"{prefix}내짤 <목록/제거/수정> [짤 ID]\n(짤 ID는 목록 명령어 사용시 불필요)")
@@ -126,32 +135,46 @@ class Usermeme(commands.Cog, name="짤 공유"):
     )
     async def _mymeme(self, ctx):
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
-            async with cur.execute("SELECT id FROM usermeme WHERE uploader_id=?", (ctx.author.id,)) as result:
+            async with cur.execute(
+                "SELECT id FROM usermeme WHERE uploader_id=?", (ctx.author.id,)
+            ) as result:
                 memes = [i[0] for i in await result.fetchall()]
-        msg = await send_meme(bot=self.bot, memeid=memes[-1], msg=await ctx.reply(embed=discord.Embed(title='짤을 불러오는중...', color=embedcolor)))
-        await msg.add_reaction('⏪')
-        await msg.add_reaction('◀️')
-        await msg.add_reaction('⏹️')
-        await msg.add_reaction('▶️')
-        await msg.add_reaction('⏩')
+        msg = await send_meme(
+            bot=self.bot,
+            memeid=memes[-1],
+            msg=await ctx.reply(
+                embed=discord.Embed(title="짤을 불러오는중...", color=embedcolor)
+            ),
+        )
+        await msg.add_reaction("⏪")
+        await msg.add_reaction("◀️")
+        await msg.add_reaction("⏹️")
+        await msg.add_reaction("▶️")
+        await msg.add_reaction("⏩")
         index = 0
         while True:
             try:
-                reaction, _user = await self.bot.wait_for('reaction', check=lambda reaction, user: self.bot.user.id in [i.id for i in await reaction.users().flatten()] and user == ctx.author and reaction.message == msg)
+                reaction, _user = await self.bot.wait_for(
+                    "reaction",
+                    check=lambda reaction, user: self.bot.user.id
+                    in [i.id for i in await reaction.users().flatten()]
+                    and user == ctx.author
+                    and reaction.message == msg,
+                )
             except TimeoutError:
                 break
-            if reaction.emoji == '⏪':
+            if reaction.emoji == "⏪":
                 index = 0
-            elif reaction.emoji == '◀️':
+            elif reaction.emoji == "◀️":
                 if index != 0:
                     index -= 1
-            elif reaction.emoji == '⏹️':
+            elif reaction.emoji == "⏹️":
                 break
-            elif reaction.emoji == '▶️':
+            elif reaction.emoji == "▶️":
                 if index + 1 < len(memes):
                     index += 1
             else:
-                index = len(memes)-1
+                index = len(memes) - 1
             msg = await send_meme(bot=self.bot, memeid=memes[index], msg=msg)
 
     @meme.command(
@@ -166,7 +189,9 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 f"사용법은 `{ctx.command.usage}`입니다.\n(짤 ID는 내짤 명령어에서 확인 할 수 있습니다.)"
             )
         async with aiosql.connect("memebot.db") as cur:
-            async with cur.execute("SELECT * FROM usermeme WHERE id=?", (memeid,)) as result:
+            async with cur.execute(
+                "SELECT * FROM usermeme WHERE id=?", (memeid,)
+            ) as result:
                 try:
                     result = await result.fetchall()[0]
                 except IndexError:
@@ -200,7 +225,9 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 f"사용법은 `{ctx.command.usage}`입니다.\n(짤 ID는 내짤 명령어에서 확인 할 수 있습니다.)"
             )
         async with aiosql.connect("memebot.db") as cur:
-            async with cur.execute("SELECT * FROM usermeme WHERE id=?", (memeid,)) as result:
+            async with cur.execute(
+                "SELECT * FROM usermeme WHERE id=?", (memeid,)
+            ) as result:
                 if not await result.fetchall():
                     await ctx.send("짤을 찾을 수 없습니다")
         await ctx.send("바꿀 제목을 입력해 주세요")
@@ -212,16 +239,20 @@ class Usermeme(commands.Cog, name="짤 공유"):
         except TimeoutError:
             return await ctx.send("취소되었습니다")
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
-            await cur.execute("UPDATE usermeme SET title=? WHERE id=?", (msg.content, memeid))
+            await cur.execute(
+                "UPDATE usermeme SET title=? WHERE id=?", (msg.content, memeid)
+            )
         await ctx.reply("제목이 수정되었습니다")
 
-    @commands.command(name='조회', aliases=('ㅈㅎ',), usage='<짤 ID>', help='밈 ID로 짤을 찾습니다')
+    @commands.command(name="조회", aliases=("ㅈㅎ",), usage="<짤 ID>", help="밈 ID로 짤을 찾습니다")
     async def _findwithid(self, ctx, memeid: int):
-        msg = await ctx.reply(embed=discord.Embed(title='짤을 불러오는 중...', color=embedcolor)
+        msg = await ctx.reply(
+            embed=discord.Embed(title="짤을 불러오는 중...", color=embedcolor)
+        )
         try:
             await sendmeme(bot=self.bot, id=memeid, msg=msg)
         except ValueError:
-            await msg.edit(embed=discord.Embed(title='짤을 찾을 수 없습니다.', color=errorcolor))
+            await msg.edit(embed=discord.Embed(title="짤을 찾을 수 없습니다.", color=errorcolor))
 
 
 def setup(bot):
