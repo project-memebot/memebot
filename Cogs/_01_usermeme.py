@@ -103,7 +103,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
     async def _random(self, ctx):
         async with aiosql.connect("memebot.db") as cur:
             async with cur.execute("SELECT id FROM usermeme") as result:
-                print(await result.fetchall())[0]
+                meme = choice(await result.fetchall())[0]
         await sendmeme(
             bot=self.bot,
             memeid=meme,
