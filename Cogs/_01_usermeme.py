@@ -232,7 +232,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
             embed=discord.Embed(title="짤을 불러오는 중...", color=embedcolor)
         )
         try:
-            await sendmeme(bot=self.bot, id=memeid, msg=msg)
+            await sendmeme(bot=self.bot, memeid=memeid, msg=msg)
         except ValueError:
             await msg.edit(embed=discord.Embed(title="짤을 찾을 수 없습니다.", color=errorcolor))
 
