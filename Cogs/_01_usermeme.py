@@ -175,7 +175,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 "SELECT * FROM usermeme WHERE id=?", (memeid,)
             ) as result:
                 try:
-                    result = await result.fetchall()[0]
+                    result = (await result.fetchall())[0]
                 except IndexError:
                     return await ctx.send("짤을 찾을 수 없습니다")
         embed = discord.Embed(title=result[2], color=embedcolor)
