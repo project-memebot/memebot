@@ -25,9 +25,10 @@ async def sendmeme(bot, memeid, msg):
         async with cur.execute(
             "SELECT * FROM usermeme WHERE id=?", (memeid,)
         ) as result:
-            result = (await result.fetchall())[0]
+            result = await result.fetchall()
     if not result:
         raise ValueError("Can't find meme")
+    result = result[0]
     embed = discord.Embed(title=result[2], color=embedcolor)
     embed.set_image(url=result[3])
     uploader = await bot.fetch_user(result[1])
