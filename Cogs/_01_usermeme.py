@@ -231,12 +231,13 @@ class Usermeme(commands.Cog, name="짤 공유"):
 
     @commands.command(name="조회", aliases=("ㅈㅎ",), usage="<짤 ID>", help="밈 ID로 짤을 찾습니다")
     async def _findwithid(self, ctx, memeid: int):
+        msg = await set_buttons(ctx)
         try:
             await wait_buttons(
                 msg=await sendmeme(
                     bot=self.bot,
                     memeid=memeid,
-                    msg=await set_buttons(ctx),
+                    msg=msg,
                 ),
                 memeid=memeid,
                 bot=self.bot
