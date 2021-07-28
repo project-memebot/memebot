@@ -4,7 +4,7 @@ import discord
 import aiohttp
 from EZPaginator import Paginator
 from discord.ext import commands, tasks
-from tool import embedcolor, sendmeme, errorcolor
+from tool import embedcolor, sendmeme, errorcolor, set_buttons, wait_buttons
 from datetime import datetime, timedelta
 import aiofiles
 import aiosqlite as aiosql
@@ -45,31 +45,15 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 "message",
                 check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
             )
-            if not msg.attachments:
-                url = msg.content
-            else:
-                url = msg.attachments[0].url
-            if not url.lower().endswith((".jpg", ".jpeg", ".png", ".webp", ".gif")):
-                return await ctx.send("지원되지 않는 파일 형식입니다.")
-            await ctx.send("짤의 제목을 입력해주세요\n제목이 없으면 `없음`을 입력해주세요")
-            msg = await self.bot.wait_for(
-                "message",
-                check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
-            )
-            title = "" if msg.content == "없음" else msg.content
-            embed = discord.Embed(title="확인", description=title, color=embedcolor)
-            embed.set_image(url=url)
-            await ctx.send(
-                content="이 내용으로 짤을 등록할까요?\nOK는 `ㅇ`, X는 `ㄴ`를 입력해 주세요", embed=embed
-            )
-            msg = await self.bot.wait_for(
-                "message",
-                check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
-            )
-            if msg.content != "ㅇ":
-                raise TimeoutError
         except TimeoutError:
-            return await ctx.send("취소되었습니다.")
+            return await ctx.send('취소되었습니다.')
+        if not msg.attachments:
+            url = msg.content
+        else:
+            url = msg.attachments[0].url
+        url = url.split('?')[0]
+        if not url.lower().endswith((".jpg", ".jpeg", ".png", ".webp", ".gif")):
+            return await ctx.send("지원되지 않는 파일 형식입니다.")
         filename = (
             str(ctx.author.id)
             + " "
@@ -77,22 +61,39 @@ class Usermeme(commands.Cog, name="짤 공유"):
             + "."
             + url.split(".")[-1]
         )
-        if not filename.lower().endswith((".jpg", ".jpeg", ".png", ".webp", ".gif")):
-            return await ctx.send("지원되지 않는 파일 형식입니다.")
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as resp:
                 async with aiofiles.open(filename, "wb") as f:
                     await f.write(await resp.read())
         try:
-            msg = await self.bot.get_channel(852811274886447114).send(
+            img_msg = await self.bot.get_channel(852811274886447114).send(
                 file=discord.File(filename)
             )
+            remove(filename)
         except discord.Forbidden:
+            remove(filename)
             return await ctx.send("파일 크기가 너무 큽니다")
+        await ctx.send("짤의 제목을 입력해주세요\n제목이 없으면 `없음`을 입력해주세요")
+        msg = await self.bot.wait_for(
+            "message",
+            check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
+        )
+        title = "" if msg.content == "없음" else msg.content
+        embed = discord.Embed(title="확인", description=title, color=embedcolor)
+        embed.set_image(url=url)
+        await ctx.send(
+            content="이 내용으로 짤을 등록할까요?\nOK는 `ㅇ`, X는 `ㄴ`를 입력해 주세요", embed=embed
+        )
+        msg = await self.bot.wait_for(
+            "message",
+            check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
+        )
+        if msg.content != "ㅇ":
+            return await ctx.send("취소되었습니다.")
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
             await cur.execute(
                 "INSERT INTO usermeme(id, uploader_id, title, url) VALUES(?, ?, ?, ?)",
-                (msg.id, ctx.author.id, title, msg.attachments[0].url),
+                (img_msg.id, ctx.author.id, title, img_msg.attachments[0].url),
             )
         await ctx.reply("짤 업로드 완료")
 
@@ -105,12 +106,14 @@ class Usermeme(commands.Cog, name="짤 공유"):
         async with aiosql.connect("memebot.db") as cur:
             async with cur.execute("SELECT id FROM usermeme") as result:
                 meme = choice(await result.fetchall())[0]
-        await sendmeme(
-            bot=self.bot,
-            memeid=meme,
-            msg=await ctx.reply(
-                embed=discord.Embed(title="짤을 불러오는중...", color=embedcolor)
+        await wait_buttons(
+            msg=await sendmeme(
+                bot=self.bot,
+                memeid=meme,
+                msg=await set_buttons(ctx),
             ),
+            memeid=meme,
+            bot=self.bot
         )
 
     @commands.group(
@@ -228,11 +231,16 @@ class Usermeme(commands.Cog, name="짤 공유"):
 
     @commands.command(name="조회", aliases=("ㅈㅎ",), usage="<짤 ID>", help="밈 ID로 짤을 찾습니다")
     async def _findwithid(self, ctx, memeid: int):
-        msg = await ctx.reply(
-            embed=discord.Embed(title="짤을 불러오는 중...", color=embedcolor)
-        )
         try:
-            await sendmeme(bot=self.bot, memeid=memeid, msg=msg)
+            await wait_buttons(
+                msg=await sendmeme(
+                    bot=self.bot,
+                    memeid=memeid,
+                    msg=await set_buttons(ctx),
+                ),
+                memeid=memeid,
+                bot=self.bot
+            )
         except ValueError:
             await msg.edit(embed=discord.Embed(title="짤을 찾을 수 없습니다.", color=errorcolor))
 
