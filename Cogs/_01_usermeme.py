@@ -10,6 +10,7 @@ import aiofiles
 import aiosqlite as aiosql
 from shutil import copy2
 import asyncio
+from os import remove
 
 
 class Usermeme(commands.Cog, name="짤 공유"):
@@ -46,12 +47,12 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
             )
         except TimeoutError:
-            return await ctx.send('취소되었습니다.')
+            return await ctx.send("취소되었습니다.")
         if not msg.attachments:
             url = msg.content
         else:
             url = msg.attachments[0].url
-        url = url.split('?')[0]
+        url = url.split("?")[0]
         if not url.lower().endswith((".jpg", ".jpeg", ".png", ".webp", ".gif")):
             return await ctx.send("지원되지 않는 파일 형식입니다.")
         filename = (
@@ -113,7 +114,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 msg=await set_buttons(ctx),
             ),
             memeid=meme,
-            bot=self.bot
+            bot=self.bot,
         )
 
     @commands.group(
@@ -145,7 +146,8 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 memes = await result.fetchall()
         embeds = [
             discord.Embed(
-                title=f"{i[2] if i[2] != '' else '`제목 없음`'} - ({memes.index(i) + 1}/{len(memes)})", color=embedcolor
+                title=f"{i[2] if i[2] != '' else '`제목 없음`'} - ({memes.index(i) + 1}/{len(memes)})",
+                color=embedcolor,
             )
             .set_image(url=i[3])
             .set_footer(text=f"밈 ID: {i[0]}")
@@ -240,7 +242,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
                     msg=msg,
                 ),
                 memeid=memeid,
-                bot=self.bot
+                bot=self.bot,
             )
         except ValueError:
             await msg.edit(embed=discord.Embed(title="짤을 찾을 수 없습니다.", color=errorcolor))

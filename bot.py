@@ -186,7 +186,8 @@ async def on_message(message):
         )
     await bot.process_commands(message)
 
-'''
+
+
 @bot.event
 async def on_command_error(ctx, error):
     if type(error) in [
@@ -212,7 +213,7 @@ async def on_command_error(ctx, error):
     embed.add_field(name="오류 내용", value=f"```py\n{error}```")
     await (bot.get_channel(852767242704650290)).send(embed=embed)
     await ctx.message.add_reaction("⚠️")
-'''
+
 
 bot.remove_command("help")
 bot.run(token)
