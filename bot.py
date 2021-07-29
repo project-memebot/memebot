@@ -169,7 +169,7 @@ async def on_command_error(ctx, error):
     ]:
         return
     if isinstance(error, commands.CommandOnCooldown):
-        return await ctx.send(f"{round(error.retry_after*1000, 2)}초 후 다시 시도해 주세요")
+        return await ctx.send(f"{round(error.retry_after, 2)}초 후 다시 시도해 주세요")
     elif isinstance(error, commands.MaxConcurrencyReached):
         return await ctx.send("현재 실행중인 명령어를 먼저 마쳐 주세요")
     embed = discord.Embed(
