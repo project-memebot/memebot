@@ -11,13 +11,13 @@ from discord.ext import commands, tasks
 from tool import (
     errorcolor,
     get_prefix,
-    CommandOnCooldown,
-    MaxConcurrencyReached,
     UserOnBlacklist,
 )
 import logging
 from shutil import copy2
 from discord_components import DiscordComponents
+from discord_slash import SlashCommand
+import aiofiles
 
 
 with open("token.bin", "rb") as tokenfile:
@@ -31,21 +31,11 @@ bot = commands.Bot(
     intents=discord.Intents.all(),
     strip_after_prefix=True,
 )
-cooldown = {}
-using_cmd = []
-
 presences = []
-cmdlogger = ""
 
 
 @bot.event
 async def on_ready():
-    global cmdlogger
-    cmdlogger = logging.getLogger()
-    cmdlogger.setLevel(logging.INFO)
-    cmdhandler = logging.FileHandler("command.log")
-    cmdhandler.setLevel(logging.INFO)
-    cmdlogger.addHandler(cmdhandler)
     global presences
     presences = cycle(
         [
@@ -142,10 +132,9 @@ async def update_koreanbots():
 
 @bot.before_invoke
 async def before_invoke(ctx):
-    global cmdlogger
     if ctx.author.id in bot.owner_ids:
         return
-    async with aiosql.connect("memebot.db", isolation_level=None) as cur:
+    async with aiosql.connect("memebot.db") as cur:
         async with cur.execute(
             "SELECT * FROM blacklist WHERE id=?", (ctx.author.id,)
         ) as result:
@@ -153,29 +142,10 @@ async def before_invoke(ctx):
             if result:
                 await ctx.reply(f"{ctx.author} 님은 `{result[0][1]}`의 사유로 차단되셨습니다.")
                 raise UserOnBlacklist
-    if ctx.author.id in using_cmd:
-        await ctx.reply("현재 실행중인 명령어를 먼저 끝내 주세요")
-        raise MaxConcurrencyReached
-    if (
-        ctx.author.id in cooldown
-        and (datetime.datetime.utcnow() - cooldown[ctx.author.id]).seconds < 3
-    ):
-        retry_after = datetime.datetime.utcnow() - cooldown[ctx.author.id]
-        await ctx.reply(f"현재 쿨타임에 있습니다.\n{retry_after.seconds}초 후 다시 시도해 주세요")
-        raise CommandOnCooldown
-    using_cmd.append(ctx.author.id)
-    cooldown[ctx.author.id] = datetime.datetime.utcnow()
-    cmdlogger.info(
-        f"{ctx.author}({ctx.author.id})\n{ctx.message.content}\n{ctx.message.created_at}"
-    )
-
-
-@bot.after_invoke
-async def after_invoke(ctx):
-    try:
-        using_cmd.remove(ctx.author.id)
-    except ValueError:
-        pass
+    async with aiofiles.open("cmd.log", "a") as f:
+        await f.write(
+            f"{ctx.author}({ctx.author.id})\n{ctx.message.content}\n{ctx.message.created_at}"
+        )
 
 
 @bot.event
@@ -185,7 +155,6 @@ async def on_message(message):
             f"{message.guild} 서버의 접두사는 `{await get_prefix(_bot=bot, message=message)}`입니다."
         )
     await bot.process_commands(message)
-
 
 
 @bot.event
@@ -199,7 +168,10 @@ async def on_command_error(ctx, error):
         commands.MissingRequiredArgument,
     ]:
         return
-
+    if isinstance(error, commands.CommandOnCooldown):
+        return await ctx.send(f"{round(error.retry_after*1000, 2)}초 후 다시 시도해 주세요")
+    elif isinstance(error, commands.MaxConcurrencyReached):
+        return await ctx.send("현재 실행중인 명령어를 먼저 마쳐 주세요")
     embed = discord.Embed(
         title="오류", description=f"`{ctx.message.content}`", color=errorcolor
     )

@@ -109,13 +109,5 @@ async def wait_buttons(msg, memeid, bot):
     await interaction.author.send("성공적으로 신고를 접수했습니다.\n허위 신고시 이용에 제한이 있을 수 있습니다.")
 
 
-class CommandOnCooldown(Exception):
-    pass
-
-
-class MaxConcurrencyReached(Exception):
-    pass
-
-
 class UserOnBlacklist(Exception):
     pass

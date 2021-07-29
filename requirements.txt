@@ -3,6 +3,8 @@ jishaku
 EZPaginator
 aiohttp
 aiofiles
+websockets
 koreanbots
 aiosqlite
 discord_components
+discord-py-slash-command

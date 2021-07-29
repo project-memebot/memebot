@@ -39,6 +39,8 @@ class Usermeme(commands.Cog, name="짤 공유"):
         aliases=("올리기", "ㅇㄹㄷ"),
         help="유저들이 공유하고 싶은 짤을 올리는 기능입니다",
     )
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.user)
     async def _upload(self, ctx):
         await ctx.send("사진(파일 또는 URL)을 업로드해 주세요.")
         try:
@@ -103,6 +105,8 @@ class Usermeme(commands.Cog, name="짤 공유"):
         aliases=("ㄹㄷ", "무작위", "랜덤보기", "뽑기"),
         help="유저들이 올린 짤들 중에서 랜덤으로 뽑아 올려줍니다",
     )
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.user)
     async def _random(self, ctx):
         async with aiosql.connect("memebot.db") as cur:
             async with cur.execute("SELECT id FROM usermeme") as result:
@@ -138,6 +142,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
         aliases=("ㅁㄹ", "보기"),
         help="내가 올린 짤의 목록을 봅니다",
     )
+    @commands.max_concurrency(1, commands.BucketType.user)
     async def _mymeme(self, ctx):
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
             async with cur.execute(
@@ -232,6 +237,8 @@ class Usermeme(commands.Cog, name="짤 공유"):
         await ctx.reply("제목이 수정되었습니다")
 
     @commands.command(name="조회", aliases=("ㅈㅎ",), usage="<짤 ID>", help="밈 ID로 짤을 찾습니다")
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.user)
     async def _findwithid(self, ctx, memeid: int):
         msg = await set_buttons(ctx)
         try:
