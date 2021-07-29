@@ -22,11 +22,9 @@ import aiofiles
 
 with open("token.bin", "rb") as tokenfile:
     token = load(tokenfile)
-mentions = discord.AllowedMentions.all()
-mentions.replied_user = False
 bot = commands.Bot(
     command_prefix=get_prefix,
-    allowed_mentions=mentions,
+    allowed_mentions=discord.AllowedMentions.none(),
     owner_ids=(745848200195473490,),
     intents=discord.Intents.all(),
     strip_after_prefix=True,

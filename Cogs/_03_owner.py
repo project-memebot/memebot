@@ -11,9 +11,9 @@ class Owner(commands.Cog, name="오너"):
         name="블랙", aliases=("밴", "차단"), usage="<유저 멘션> <이유>", help="봇에게서 유저를 차단합니다."
     )
     @commands.is_owner()
-    async def _addblack(self, ctx, user: discord.User, *, reason=""):
+    async def _addblack(self, ctx, user: discord.User, *, reason=None):
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
-            await cur.execute(f'INSERT INTO blacklist VALUE({user.id}, "{reason}")')
+            await cur.execute(f'INSERT INTO blacklist VALUES({user.id}, "{reason}")')
         await ctx.reply(f"{user.mention} 유저가 정상적으로 차단 처리 되었습니다.")
 
     @commands.command(
