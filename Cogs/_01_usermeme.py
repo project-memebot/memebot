@@ -89,15 +89,18 @@ class Usermeme(commands.Cog, name="짤 공유"):
             content="이 내용으로 짤을 등록할까요?",
             embed=embed,
             components=[
-                Button(label='✅', style=ButtonStyle.green),
-                Button(label='❌', style=ButtonStyle.red),
+                [
+                    Button(emoji='✅', style=ButtonStyle.green),
+                    Button(emoji='❌', style=ButtonStyle.red),
+                ]
             ]
         )
         interaction = await self.bot.wait_for(
             "button_click",
-            check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
+            check=lambda m: m.author == ctx.author and m.channel == ctx.channel and m.component.label is None,
         )
-        if interaction.component.label == '❌':
+        if interaction.component.emoji == '❌':
+            await img_msg.delete()
             return await ctx.reply('취소되었습니다')
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
             await cur.execute(
