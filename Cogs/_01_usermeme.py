@@ -89,8 +89,8 @@ class Usermeme(commands.Cog, name="짤 공유"):
             content="이 내용으로 짤을 등록할까요?",
             embed=embed,
             components=[
-                Button(label='✅', style=ButtonStyle.GREEN),
-                Button(label='❌', style=ButtonStyle.RED),
+                Button(label='✅', style=ButtonStyle.green),
+                Button(label='❌', style=ButtonStyle.red),
             ]
         )
         interaction = await self.bot.wait_for(
