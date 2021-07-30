@@ -99,9 +99,8 @@ class Support(commands.Cog, name="지원"):
     async def _credit(self, ctx):
         embed = discord.Embed(
             title="크레딧",
-            description="[프로필 사진 원본 이미지]\
-            (https://www.flaticon.com/free-icon/picture_2659360?term=image&page=1&position=10&page=1 \
-            &position=10&related_id=2659360&origin=search)\n\
+            description="[프로필 사진 원본 이미지](https://www.flaticon.com/free-icon/picture_2659360?term=image&page=1\
+            &position=10&page=1&position=10&related_id=2659360&origin=search)\n\
             프로필 사진 제작자 - <@441202161481809922>",
             color=embedcolor,
         )

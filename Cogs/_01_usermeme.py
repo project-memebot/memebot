@@ -11,6 +11,7 @@ import aiosqlite as aiosql
 from shutil import copy2
 import asyncio
 from os import remove
+from discord_components import Button, ButtonStyle
 
 
 class Usermeme(commands.Cog, name="짤 공유"):
@@ -85,14 +86,19 @@ class Usermeme(commands.Cog, name="짤 공유"):
         embed = discord.Embed(title="확인", description=title, color=embedcolor)
         embed.set_image(url=url)
         await ctx.send(
-            content="이 내용으로 짤을 등록할까요?\nOK는 `ㅇ`, X는 `ㄴ`를 입력해 주세요", embed=embed
+            content="이 내용으로 짤을 등록할까요?",
+            embed=embed,
+            components=[
+                Button(label='✅', style=ButtonStyle.GREEN),
+                Button(label='❌', style=ButtonStyle.RED),
+            ]
         )
-        msg = await self.bot.wait_for(
-            "message",
+        interaction = await self.bot.wait_for(
+            "button_click",
             check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
         )
-        if msg.content != "ㅇ":
-            return await ctx.send("취소되었습니다.")
+        if interaction.component.label == '❌':
+            return await ctx.reply('취소되었습니다')
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
             await cur.execute(
                 "INSERT INTO usermeme(id, uploader_id, title, url) VALUES(?, ?, ?, ?)",
