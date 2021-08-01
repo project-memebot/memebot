@@ -102,13 +102,26 @@ async def on_ready():
     DiscordComponents(bot)
     change_presence.start()
     update_koreanbots.start()
+    backupdb.start()
     await update_koreanbots()
     await bot.get_channel(852767242704650290).send("켜짐")
 
 
-@tasks.loop(seconds=7)
+@tasks.loop(seconds=10)
 async def change_presence():
     await bot.change_presence(activity=next(presences))
+
+
+@tasks.loop(hours=4)
+async def backupdb():
+    copy2("memebot.db", "backup.db")
+    await (self.bot.get_channel(852767243360403497)).send(
+        str(datetime.utcnow() + timedelta(hours=9)), file=discord.File("backup.db")
+    )
+    await (self.bot.get_channel(852767243360403497)).send(
+        str(datetime.utcnow() + timedelta(hours=9)),
+        file=discord.File("command.log"),
+    )
 
 
 @tasks.loop(minutes=30)

@@ -22,18 +22,6 @@ class Usermeme(commands.Cog, name="짤 공유"):
 
     def __init__(self, bot):
         self.bot = bot
-        self._backupdb.start()
-
-    @tasks.loop(minutes=15)
-    async def _backupdb(self):
-        copy2("memebot.db", "backup.db")
-        await (self.bot.get_channel(852767243360403497)).send(
-            str(datetime.utcnow() + timedelta(hours=9)), file=discord.File("backup.db")
-        )
-        await (self.bot.get_channel(852767243360403497)).send(
-            str(datetime.utcnow() + timedelta(hours=9)),
-            file=discord.File("command.log"),
-        )
 
     @commands.command(
         name="업로드",
