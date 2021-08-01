@@ -115,12 +115,8 @@ async def change_presence():
 @tasks.loop(hours=4)
 async def backupdb():
     copy2("memebot.db", "backup.db")
-    await (self.bot.get_channel(852767243360403497)).send(
-        str(datetime.utcnow() + timedelta(hours=9)), file=discord.File("backup.db")
-    )
-    await (self.bot.get_channel(852767243360403497)).send(
-        str(datetime.utcnow() + timedelta(hours=9)),
-        file=discord.File("command.log"),
+    await (bot.get_channel(852767243360403497)).send(
+        str(datetime.utcnow() + timedelta(hours=9)), files=[discord.File("backup.db"), discord.File("command.log")]
     )
 
 
