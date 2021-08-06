@@ -1,6 +1,6 @@
-import datetime
+from datetime import datetime, timedelta
 from itertools import cycle
-from os import listdir
+from os import listdir, chdir
 from os.path import isfile
 from pickle import load
 import aiosqlite as aiosql
@@ -16,9 +16,11 @@ from tool import (
 import logging
 from shutil import copy2
 from discord_components import DiscordComponents
-from discord_slash import SlashCommand
 import aiofiles
 
+
+if __import__('platform').system() == 'Windows':
+    chdir('python/meme-bot')
 
 with open("token.bin", "rb") as tokenfile:
     token = load(tokenfile)
@@ -84,26 +86,18 @@ async def on_ready():
             "CREATE TABLE IF NOT EXISTS customprefix (guild_id INTEGER PRIMARY KEY, prefix text)"
         )
         # 유저가 업로드한 밈들 보낼 웹훅
-
-    copy2("memebot.db", "backup.db")
-    await (bot.get_channel(852767243360403497)).send(
-        str(datetime.datetime.utcnow() + datetime.timedelta(hours=9)),
-        file=discord.File("backup.db"),
-    )
-    print("ready")
-    cogs = [j if isfile("Cogs/" + j) else "" for j in listdir("Cogs")]
-    cogs.sort()
-    for file in cogs:
-        if file != "":
-            bot.load_extension(f"Cogs.{file[:-3]}")
-            print(f"Cogs.{file[:-3]}")
+    for file in [i for i in listdir('Cogs') if i.endswith('.py')]:
+        bot.load_extension(f"Cogs.{file[:-3]}")
+        print(f"Cogs.{file[:-3]}")
     bot.load_extension("jishaku")
+    await backupdb()
+    await update_koreanbots()
+    print("ready")
     print("jishaku")
     DiscordComponents(bot)
     change_presence.start()
     update_koreanbots.start()
     backupdb.start()
-    await update_koreanbots()
     await bot.get_channel(852767242704650290).send("켜짐")
 
 

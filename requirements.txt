@@ -6,5 +6,4 @@ aiofiles
 websockets
 koreanbots
 aiosqlite
-discord_components
-discord-py-slash-command
+discord-components

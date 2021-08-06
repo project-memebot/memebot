@@ -99,7 +99,7 @@ async def wait_buttons(msg, memeid, bot):
     async with aiohttp.ClientSession() as session:
         async with session.get(result[3]) as resp:
             async with aiofiles.open(filename, "wb") as f:
-                await f.write(await resp.read())
+                await f.write(await resp.read())    
     await bot.get_channel(869414081411567676).send(
         f"{interaction.author.mention}: {interaction.component[0].description}\
         \n{bot.get_user(result[1]).mention} - {result[2]}",
