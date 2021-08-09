@@ -15,6 +15,7 @@ class Owner(commands.Cog, name="오너"):
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
             await cur.execute(f'INSERT INTO blacklist VALUES({user.id}, "{reason}")')
         await ctx.reply(f"{user.mention} 유저가 정상적으로 차단 처리 되었습니다.")
+        await user.send('`' + reason + '`라는 이유로 짤방러에게서 차단 처리되었습니다.\n이의는 서포트 서버에서 티켓을 열어 주세요.')
 
     @commands.command(
         name="강제제거", aliases=("강제삭제",), usage="<짤 id>", help="강제로 짤을 지웁니다"
