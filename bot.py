@@ -12,6 +12,7 @@ from tool import (
     errorcolor,
     get_prefix,
     UserOnBlacklist,
+    NotJoined,
 )
 import logging
 from shutil import copy2
@@ -19,8 +20,8 @@ from discord_components import DiscordComponents
 import aiofiles
 
 
-if __import__('platform').system() == 'Windows':
-    chdir('python/meme-bot')
+if __import__("platform").system() == "Windows":
+    chdir("python/meme-bot")
 
 with open("token.bin", "rb") as tokenfile:
     token = load(tokenfile)
@@ -75,7 +76,6 @@ async def on_ready():
         await cur.execute(
             "CREATE TABLE IF NOT EXISTS usermeme (id INTEGER PRIMARY KEY, uploader_id INTEGER, title text, url text)"
         )
-        # 유저가 업로드한 밈들 id/설명 등 매칭
         await cur.execute(
             "CREATE TABLE IF NOT EXISTS blacklist (id INTEGER PRIMARY KEY, reason text)"
         )
@@ -86,7 +86,9 @@ async def on_ready():
             "CREATE TABLE IF NOT EXISTS customprefix (guild_id INTEGER PRIMARY KEY, prefix text)"
         )
         # 유저가 업로드한 밈들 보낼 웹훅
-    for file in [i for i in listdir('Cogs') if i.endswith('.py')]:
+        await cur.execute("CREATE TABLE IF NOT EXISTS joined (id INTEGER PRIMARY KEY)")
+        # 가입된 유저 목록
+    for file in [i for i in listdir("Cogs") if i.endswith(".py")]:
         bot.load_extension(f"Cogs.{file[:-3]}")
         print(f"Cogs.{file[:-3]}")
     bot.load_extension("jishaku")
@@ -110,7 +112,8 @@ async def change_presence():
 async def backupdb():
     copy2("memebot.db", "backup.db")
     await (bot.get_channel(852767243360403497)).send(
-        str(datetime.utcnow() + timedelta(hours=9)), files=[discord.File("backup.db"), discord.File("cmd.log")]
+        str(datetime.utcnow() + timedelta(hours=9)),
+        files=[discord.File("backup.db"), discord.File("cmd.log")],
     )
 
 
@@ -143,6 +146,15 @@ async def before_invoke(ctx):
             if result:
                 await ctx.reply(f"{ctx.author} 님은 `{result[0][1]}`의 사유로 차단되셨습니다.")
                 raise UserOnBlacklist
+    if ctx.command.name != "가입":
+        async with aiosql.connect("memebot.db") as cur:
+            async with cur.execute(
+                "SELECT * FROM joined WHERE id=?", (ctx.author.id,)
+            ) as result:
+                result = await result.fetchall()
+                if result:
+                    await ctx.reply("가입 명령어를 통해 사용 권한을 얻으세요.")
+                    raise NotJoined
     async with aiofiles.open("cmd.log", "a") as f:
         await f.write(
             f"{ctx.author}({ctx.author.id})\n{ctx.message.content}\n{ctx.message.created_at}"
@@ -151,7 +163,9 @@ async def before_invoke(ctx):
 
 @bot.event
 async def on_message(message):
-    if bot.user.mentioned_in(message):
+    if isinstance(message.channel, discord.DMChannel):
+        return
+    if str(bot.user) in [i.name + "#" + i.discriminator for i in message.mentions]:
         await message.channel.send(
             f"{message.guild} 서버의 접두사는 `{await get_prefix(_bot=bot, message=message)}`입니다."
         )

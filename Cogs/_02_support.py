@@ -2,6 +2,7 @@ import aiosqlite as aiosql
 import discord
 from discord.ext import commands
 from tool import embedcolor
+from discord_components import Button, ButtonStyle
 
 
 class Support(commands.Cog, name="지원"):
@@ -54,7 +55,7 @@ class Support(commands.Cog, name="지원"):
             [공식 서버](http://support.memebot.kro.kr) \
             \n\n> <>는 봇을 사용하는 데에 있어서 필수적인 값, []는 필수적이지 않은 값입니다. \
             \n> `[]`와 `<>`는 빼고 입력해 주세요. \
-            \n\n> **Made by {self.bot.get_user(745848200195473490)}**\n",
+            \n\n> **Made by {await self.bot.fetch_user(745848200195473490)}**\n",
                 color=embedcolor,
             )
             embed.set_footer(text=f'{ctx.guild} 서버의 접두사는 "{prefix}"입니다')
@@ -125,6 +126,51 @@ class Support(commands.Cog, name="지원"):
                         (prefix, ctx.guild.id),
                     )
         await ctx.reply(f"{ctx.guild} 서버의 접두사가 `{prefix}`로 설정되었습니다.")
+
+    @commands.command(name="가입", help="짤방러 봇의 사용 권한을 얻습니다.", enabled=False)
+    @commands.cooldown(1, 60, commands.BucketType.user)
+    async def _join(self, ctx):
+        embed = discord.Embed(
+            title="약관 동의",
+            description="[짤방러 봇의 개인정보 처리 약관](http://tos.memebot.kro.kr)에\
+                동의하시면 동의, 아니면 미동의를 눌러주세요.\n\
+                    미동의시 봇 사용이 불가능합니다.",
+            color=embedcolor,
+        )
+        await ctx.send(
+            embed=embed,
+            components=[
+                [
+                    Button(style=ButtonStyle.green, label="동의", emoji="✅"),
+                    Button(style=ButtonStyle.red, label="미동의", emoji="❎"),
+                ]
+            ],
+        )
+        try:
+            await self.bot.wait_for(
+                "button_click",
+                check=lambda i: i.author == ctx.author
+                and i.channel == ctx.channel
+                and i.component.label == "동의",
+            )
+        except __import__("asyncio").TimeoutError:
+            return await ctx.reply("가입이 취소되었습니다.")
+        async with aiosql.connect("memebot.db", isolation_level=None) as cur:
+            await cur.execute(f"INSERT INTO joined VALUES ({ctx.author.id})")
+        await ctx.reply("가입되었습니다.")
+
+    @commands.command(name="탈퇴", help="짤방러 봇의 사용 권한을 포기하고 개인정보를 삭제합니다.", enabled=False)
+    @commands.cooldown(1, 60, commands.BucketType.user)
+    async def _leave(self, ctx):
+        async with aiosql.connect("memebot.db", isolation_level=None) as cur:
+            await cur.execute(f"DELETE FROM joined WHERE id=?", (ctx.author.id,))
+            async with cur.execute(
+                f"SELECT * FROM usermeme WHERE id=?", (ctx.author.id,)
+            ) as result:
+                result = await result.fetchall()
+            for i in result:
+                await cur.execute(f"UPDATE usermeme SET id=? WHERE id=?", (0, i[0]))
+        await ctx.reply("탈퇴되었습니다.")
 
 
 def setup(bot):

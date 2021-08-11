@@ -31,8 +31,14 @@ async def sendmeme(bot, memeid, msg):
     result = result[0]
     embed = discord.Embed(title=result[2], color=embedcolor)
     embed.set_image(url=result[3])
-    uploader = await bot.fetch_user(result[1])
-    embed.set_author(icon_url=uploader.avatar_url, name=str(uploader))
+    if result[1] == 0:
+        embed.set_author(name="탈퇴한 유저")
+    else:
+        try:
+            uploader = await bot.fetch_user(result[1])
+            embed.set_author(icon_url=uploader.avatar_url, name=str(uploader))
+        except discord.NotFound:
+            embed.set_author(name="사용자 정보를 찾을 수 없음")
     embed.set_footer(text=f"짤 ID: {result[0]}")
     await msg.edit(embed=embed)
     return await msg.channel.fetch_message(msg.id)
@@ -41,7 +47,7 @@ async def sendmeme(bot, memeid, msg):
 async def set_buttons(ctx: commands.Context):
     return await ctx.send(
         embed=discord.Embed(title="밈을 불러오는중..."),
-        components=[Button(style=ButtonStyle.red, label="🚨 신고하기")],
+        # components=[Button(style=ButtonStyle.red, label="🚨 신고하기")],
     )
 
 
@@ -99,7 +105,7 @@ async def wait_buttons(msg, memeid, bot):
     async with aiohttp.ClientSession() as session:
         async with session.get(result[3]) as resp:
             async with aiofiles.open(filename, "wb") as f:
-                await f.write(await resp.read())    
+                await f.write(await resp.read())
     await bot.get_channel(869414081411567676).send(
         f"{interaction.author.mention}: {interaction.component[0].description}\
         \n{bot.get_user(result[1]).mention} - {result[2]}",
@@ -110,4 +116,8 @@ async def wait_buttons(msg, memeid, bot):
 
 
 class UserOnBlacklist(Exception):
+    pass
+
+
+class NotJoined(Exception):
     pass
