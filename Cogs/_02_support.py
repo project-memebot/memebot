@@ -1,7 +1,8 @@
+from logging import error
 import aiosqlite as aiosql
 import discord
 from discord.ext import commands
-from tool import embedcolor
+from tool import embedcolor, errorcolor
 from discord_components import Button, ButtonStyle
 
 
@@ -130,6 +131,10 @@ class Support(commands.Cog, name="지원"):
     @commands.command(name="가입", help="짤방러 봇의 사용 권한을 얻습니다.", enabled=False)
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def _join(self, ctx):
+        async with aiosql.connect("memebot.db", isolation_level=None) as cur:
+            async with cur.execute('SELECT * FROM joined WHERE id=?', (ctx.author.id,)) as result:
+                if await result.fetchall():
+                    return await ctx.reply(embed=discord.Embed(title="가입 실패", description="이미 가입되었습니다.", color=errorcolor))
         embed = discord.Embed(
             title="약관 동의",
             description="[짤방러 봇의 개인정보 처리 약관](http://tos.memebot.kro.kr)에\
@@ -163,13 +168,16 @@ class Support(commands.Cog, name="지원"):
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def _leave(self, ctx):
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
-            await cur.execute(f"DELETE FROM joined WHERE id=?", (ctx.author.id,))
+            async with cur.execute(f"SELECT * FROM joined WHERE id=?", (ctx.author.id,)) as result:
+                if not await result.fetchall():
+                    return await ctx.reply(embed=discord.Embed(title='탈퇴 실패', description='가입된 적이 없습니다.', color=errorcolor))
             async with cur.execute(
                 f"SELECT * FROM usermeme WHERE id=?", (ctx.author.id,)
             ) as result:
                 result = await result.fetchall()
             for i in result:
                 await cur.execute(f"UPDATE usermeme SET id=? WHERE id=?", (0, i[0]))
+            await cur.execute(f"DELETE FROM usermeme WHERE id=?", (ctx.author.id,))
         await ctx.reply("탈퇴되었습니다.")
 
 
