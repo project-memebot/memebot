@@ -3,15 +3,17 @@ from random import choice
 import discord
 import aiohttp
 from EZPaginator import Paginator
-from discord.ext import commands, tasks
-from tool import embedcolor, sendmeme, errorcolor, set_buttons, wait_buttons
+from discord.ext import commands
+from tool import embedcolor, sendmeme, errorcolor, set_buttons  # , wait_buttons
 from datetime import datetime, timedelta
 import aiofiles
 import aiosqlite as aiosql
-from shutil import copy2
-import asyncio
-from os import remove
+from shutil import rmtree
+from os import remove, makedirs, listdir
 from discord_components import Button, ButtonStyle
+import zipfile
+from os.path import isdir
+from string import ascii_letters, digits
 
 
 class Usermeme(commands.Cog, name="짤 공유"):
@@ -49,7 +51,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
         filename = (
             str(ctx.author.id)
             + " "
-            + str(datetime.utcnow() + timedelta(hours=9))
+            + (datetime.utcnow() + timedelta(hours=9)).strftime("%Y%m%d-%H%M%S")
             + "."
             + url.split(".")[-1]
         )
@@ -78,18 +80,19 @@ class Usermeme(commands.Cog, name="짤 공유"):
             embed=embed,
             components=[
                 [
-                    Button(emoji="✅", style=ButtonStyle.green),
-                    Button(emoji="❌", style=ButtonStyle.red),
+                    Button(emoji="✅", label='등록', style=ButtonStyle.green),
+                    Button(emoji="❌", label='취소', style=ButtonStyle.red),
                 ]
             ],
         )
-        interaction = await self.bot.wait_for(
-            "button_click",
-            check=lambda m: m.author == ctx.author
-            and m.channel == ctx.channel
-            and m.component.label is None,
-        )
-        if interaction.component.emoji == "❌":
+        try:
+            interaction = await self.bot.wait_for(
+                "button_click",
+                check=lambda m: m.author == ctx.author
+                and m.channel == ctx.channel
+                and m.component.label == '등록',
+            )
+        except TimeoutError:
             await img_msg.delete()
             return await ctx.reply("취소되었습니다")
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
@@ -109,14 +112,10 @@ class Usermeme(commands.Cog, name="짤 공유"):
         async with aiosql.connect("memebot.db") as cur:
             async with cur.execute("SELECT id FROM usermeme") as result:
                 meme = choice(await result.fetchall())[0]
-        await wait_buttons(
-            msg=await sendmeme(
-                bot=self.bot,
-                memeid=meme,
-                msg=await set_buttons(ctx),
-            ),
-            memeid=meme,
+        await sendmeme(
             bot=self.bot,
+            memeid=meme,
+            msg=await set_buttons(ctx),
         )
 
     @commands.group(
@@ -180,7 +179,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
             )
         async with aiosql.connect("memebot.db") as cur:
             async with cur.execute(
-                "SELECT * FROM usermeme WHERE id=?", (memeid,)
+                "SELECT * FROM usermeme WHERE id=? AND uploader_id=?", (memeid, ctx.author.id)
             ) as result:
                 try:
                     result = (await result.fetchall())[0]
@@ -209,6 +208,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
         usage="<짤 ID>",
         help="자신이 올린 짤의 제목을 바꿉니다",
     )
+    @commands.max_concurrency(1, commands.BucketType.user)
     async def _edit(self, ctx, memeid=None):
         if memeid is None:
             return await ctx.send(
@@ -216,7 +216,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
             )
         async with aiosql.connect("memebot.db") as cur:
             async with cur.execute(
-                "SELECT * FROM usermeme WHERE id=?", (memeid,)
+                "SELECT * FROM usermeme WHERE id=? AND uploader_id=?", (memeid, ctx.author.id)
             ) as result:
                 if not await result.fetchall():
                     await ctx.send("짤을 찾을 수 없습니다")
@@ -239,17 +239,70 @@ class Usermeme(commands.Cog, name="짤 공유"):
     async def _findwithid(self, ctx, memeid: int):
         msg = await set_buttons(ctx)
         try:
-            await wait_buttons(
-                msg=await sendmeme(
-                    bot=self.bot,
-                    memeid=memeid,
-                    msg=msg,
-                ),
-                memeid=memeid,
+            await sendmeme(
                 bot=self.bot,
+                memeid=memeid,
+                msg=msg,
             )
         except ValueError:
             await msg.edit(embed=discord.Embed(title="짤을 찾을 수 없습니다.", color=errorcolor))
+
+    # 작업중
+    @commands.command(name="여러짤업로드", aliases=("ㅇㄹㅉㅇㄹㄷ",), help="여러 짤을 업로드 합니다", enabled=False)
+    @commands.cooldown(1, 15, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.user)
+    async def _manymemeupload(self, ctx):
+        await ctx.send("짤들을 모은 .zip 파일을 업로드 해주세요")
+        try:
+            msg = await self.bot.wait_for(
+                "message",
+                check=lambda m: m.author == ctx.author
+                and m.attachments
+                and m.attachments[0].filename.endswith(".zip")
+                and m.channel == ctx.channel,
+            )
+        except __import__("asyncio").TimeoutError:
+            return await ctx.reply("취소되었습니다")
+        upmsg = await ctx.send("업로드 준비중입니다. 모든 짤들은 설명이 없이 기록됩니다.")
+        filename = (
+            f"{ctx.author.id}-"
+            + (datetime.utcnow() + timedelta(hours=9)).strftime(
+                "%Y%m%d-%H%M%S"
+            )
+            + ".zip"
+        )
+        await msg.attachments[0].save(filename)
+        await __import__('asyncio').sleep(1)
+        if not isdir("memes"):
+            makedirs("memes")
+        if isdir(f"memes/{ctx.author.id}"):
+            rmtree(f"memes/{ctx.author.id}")
+        letters = digits + ascii_letters + '_'
+        with zipfile.ZipFile(filename, "r") as zipped:    
+            if not zipped.namelist():
+                return await upmsg.edit('파일이 없습니다.')
+            for i in zipped.namelist():
+                if not i.lower().endswith((".jpg", ".jpeg", ".png", ".webp", ".gif")):
+                    return await upmsg.edit('지원되지 앟는 파일이 있어 업로드에 실패했습니다.')
+                for j in ('.'.join(i.split('.')[:-2])).split():
+                    if not j in letters:
+                        await ctx.reply(
+                            "유해할 수 있는 파일이 있어 업로드에 실패했습니다.\n\
+파일명에서 특수문자를 제거하여 주십시오.\n\
+(파일명은 알파벳 대소문자, 숫자, `_`만 가능합니다)"
+                        )
+                        remove(filename)
+                        return
+            zipped.extractall(f"memes/{ctx.author.id}")
+        await upmsg.edit('업로드 중...')
+        async with aiosql.connect("memebot.db", isolation_level=None) as cur:
+            channel = self.bot.get_channel(852811274886447114)
+            for i in listdir("memes/{ctx.author.id}"):
+                msg = (await channel.send(file=discord.File(f"memes/{ctx.author.id}/" + i)))
+                await cur.execute(f'INSERT INTO usermeme VALUES ({msg.id}, {ctx.author.id}, "", {msg.attachments[0].url})')
+        await upmsg.edit('업로드 완료')
+        remove(filename)
+        rmtree(f'memes/{ctx.author.id}')
 
 
 def setup(bot):

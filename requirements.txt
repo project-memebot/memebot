@@ -4,6 +4,5 @@ EZPaginator
 aiohttp
 aiofiles
 websockets
-koreanbots
 aiosqlite
 discord-components

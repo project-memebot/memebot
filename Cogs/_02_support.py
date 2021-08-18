@@ -19,7 +19,7 @@ class Support(commands.Cog, name="지원"):
         embed = discord.Embed(
             title="지원",
             description=">>> [서포트 서버 초대](http://support.memebot.kro.kr)\n\
-            [봇 초대](http://invite.memebot.kro.kr)\n[코리안봇츠](http://koreanbots.memebot.kro.kr) ",
+            [봇 초대](http://invite.memebot.kro.kr)",
             color=embedcolor,
         )
         await ctx.send(embed=embed)
@@ -132,9 +132,15 @@ class Support(commands.Cog, name="지원"):
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def _join(self, ctx):
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
-            async with cur.execute('SELECT * FROM joined WHERE id=?', (ctx.author.id,)) as result:
+            async with cur.execute(
+                "SELECT * FROM joined WHERE id=?", (ctx.author.id,)
+            ) as result:
                 if await result.fetchall():
-                    return await ctx.reply(embed=discord.Embed(title="가입 실패", description="이미 가입되었습니다.", color=errorcolor))
+                    return await ctx.reply(
+                        embed=discord.Embed(
+                            title="가입 실패", description="이미 가입되었습니다.", color=errorcolor
+                        )
+                    )
         embed = discord.Embed(
             title="약관 동의",
             description="[짤방러 봇의 개인정보 처리 약관](http://tos.memebot.kro.kr)에\
@@ -168,9 +174,15 @@ class Support(commands.Cog, name="지원"):
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def _leave(self, ctx):
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
-            async with cur.execute(f"SELECT * FROM joined WHERE id=?", (ctx.author.id,)) as result:
+            async with cur.execute(
+                f"SELECT * FROM joined WHERE id=?", (ctx.author.id,)
+            ) as result:
                 if not await result.fetchall():
-                    return await ctx.reply(embed=discord.Embed(title='탈퇴 실패', description='가입된 적이 없습니다.', color=errorcolor))
+                    return await ctx.reply(
+                        embed=discord.Embed(
+                            title="탈퇴 실패", description="가입된 적이 없습니다.", color=errorcolor
+                        )
+                    )
             async with cur.execute(
                 f"SELECT * FROM usermeme WHERE id=?", (ctx.author.id,)
             ) as result:

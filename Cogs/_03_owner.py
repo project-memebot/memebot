@@ -30,7 +30,5 @@ class Owner(commands.Cog, name="오너"):
             await self.bot.get_channel(852811274886447114).fetch_message(meme_id)
         ).delete()
         await ctx.reply("완료")
-
-
 def setup(bot):
     bot.add_cog(Owner(bot))

@@ -1,12 +1,10 @@
 from datetime import datetime, timedelta
 from itertools import cycle
-from os import listdir, chdir
-from os.path import isfile
+from os import listdir, chdir, remove
 from pickle import load
 import aiosqlite as aiosql
 import aiohttp
 import discord
-import koreanbots
 from discord.ext import commands, tasks
 from tool import (
     errorcolor,
@@ -14,25 +12,27 @@ from tool import (
     UserOnBlacklist,
     NotJoined,
 )
-import logging
 from shutil import copy2
 from discord_components import DiscordComponents
 import aiofiles
+from discord_components import Select, SelectOption
+import asyncio
 
-
-if __import__("platform").system() == "Windows":
+test = __import__("platform").system() == "Windows"
+if test:
     chdir("python/meme-bot")
 
-with open("token.bin", "rb") as tokenfile:
+with open("testertoken.bin" if test else "token.bin", "rb") as tokenfile:
     token = load(tokenfile)
 bot = commands.Bot(
-    command_prefix=get_prefix,
+    command_prefix="ㅉ!" if test else get_prefix,
     allowed_mentions=discord.AllowedMentions.none(),
     owner_ids=(745848200195473490,),
     intents=discord.Intents.all(),
     strip_after_prefix=True,
 )
 presences = []
+component = DiscordComponents(bot)
 
 
 @bot.event
@@ -92,15 +92,14 @@ async def on_ready():
         bot.load_extension(f"Cogs.{file[:-3]}")
         print(f"Cogs.{file[:-3]}")
     bot.load_extension("jishaku")
-    await backupdb()
-    await update_koreanbots()
-    print("ready")
     print("jishaku")
-    DiscordComponents(bot)
-    change_presence.start()
-    update_koreanbots.start()
-    backupdb.start()
-    await bot.get_channel(852767242704650290).send("켜짐")
+    print("ready")
+    if not test:
+        await backupdb()
+        #update_koreanbots.start()
+        backupdb.start()
+        change_presence.start()
+    await bot.get_channel(852767242704650290).send(("테봇 " if test else "") + "켜짐")
 
 
 @tasks.loop(seconds=10)
@@ -132,7 +131,23 @@ async def update_koreanbots():
                 await (bot.get_channel(852767242704650290)).send(
                     f"Koreanbots API 요청에 실패함\n{await res.json()}"
                 )
+                
+                
+@bot.event
+async def on_guild_join(guild):
+    embed = discord.Embed(title="서버 참여", color=embedcolor)
+    embed.add_field(name="서버 정보", value=f"{guild.name} ({guild.id})")
+    embed.set_thumbnail(url=guild.icon_url)
+    embed.set_footer(icon_url=guild.owner.avatar_url, text=f"{guild.owner}")
+    await (self.bot.get_channel(852767242704650290)).send(embed=embed)
 
+@bot.event
+async def on_guild_remove(guild):
+    embed = discord.Embed(title="서버 퇴장", color=embedcolor)
+    embed.add_field(name="서버 정보", value=f"{guild.name} ({guild.id})")
+    embed.set_thumbnail(url=guild.icon_url)
+    embed.set_footer(icon_url=guild.owner.avatar_url, text=f"{guild.owner}")
+    await (self.bot.get_channel(852767242704650290)).send(embed=embed)
 
 @bot.before_invoke
 async def before_invoke(ctx):
@@ -173,6 +188,78 @@ async def on_message(message):
 
 
 @bot.event
+async def on_button_click(interaction):
+    if interaction.component.label == "🚨 신고하기":
+        await interaction.respond(content='DM을 확인해 주세요')
+        report_msg = await interaction.author.send(
+            "신고 사유를 선택해 주세요",
+            components=[
+                Select(
+                    placeholder="신고 사유",
+                    options=[
+                        SelectOption(
+                            label="1",
+                            value="1",
+                            description="대한민국 법에 어긋나는 짤(초상권, etc...)",
+                        ),
+                        SelectOption(
+                            label="2",
+                            value="2",
+                            description="인신공격, 저격, 분쟁, 비방, 비하 등의 위험이 있는 짤",
+                        ),
+                        SelectOption(
+                            label="3", value="3", description="홍보 목적으로 업로드된 짤"
+                        ),
+                        SelectOption(
+                            label="4",
+                            value="4",
+                            description="정치드립/19금/19금 드립 등 불쾌할 수 있는 짤",
+                        ),
+                        SelectOption(
+                            label="5",
+                            value="5",
+                            description="같은 짤 재업로드",
+                        ),
+                        SelectOption(
+                            label="6",
+                            value="6",
+                            description="특정 정치 사상을 가지거나 특정인들의 팬 등 소수들만 재미있는 짤",
+                        ),
+                        SelectOption(
+                            label="7",
+                            value="7",
+                            description="19금 용어 등을 모자이크하지 않음 / 모자이크되지 않은 욕설이 2개 이상",
+                        ),
+                    ],
+                    max_values=7,
+                )
+            ],
+            ephemeral=False,
+        )
+        msg = await interaction.channel.fetch_message(interaction.message.id)
+        try:
+            interaction = await bot.wait_for("select_option")
+        except asyncio.TimeoutError:
+            return await interaction.author.send("시간 초과로 신고가 취소되었습니다")
+        embed = msg.embeds[0]
+        date = __import__("datetime").datetime.utcnow() + __import__(
+            "datetime"
+        ).timedelta(hours=9)
+        filename = f'report_{date.strftime("%y%b%d_%H%M%S")}_{interaction.author.id}.{embed.image.url.split("?")[0].split(".")[-1]}'
+        async with aiohttp.ClientSession() as session:
+            async with session.get(embed.image.url) as resp:
+                async with aiofiles.open(filename, "wb") as f:
+                    await f.write(await resp.read())
+        await bot.get_channel(869414081411567676).send(
+            f"{interaction.author.mention}: `{'`, `'.join([i.value for i in interaction.component])}`",
+            file=discord.File(filename),
+            embed=embed,
+        )
+        remove(filename)
+        await report_msg.edit(content='신고 접수가 완료되었습니다', components=[])
+
+
+@bot.event
 async def on_command_error(ctx, error):
     if type(error) in [
         commands.CommandNotFound,
@@ -183,10 +270,14 @@ async def on_command_error(ctx, error):
         commands.MissingRequiredArgument,
     ]:
         return
+    
     if isinstance(error, commands.CommandOnCooldown):
         return await ctx.send(f"{round(error.retry_after, 2)}초 후 다시 시도해 주세요")
     elif isinstance(error, commands.MaxConcurrencyReached):
         return await ctx.send("현재 실행중인 명령어를 먼저 마쳐 주세요")
+    
+    if test:
+        raise error
     embed = discord.Embed(
         title="오류", description=f"`{ctx.message.content}`", color=errorcolor
     )
@@ -200,6 +291,7 @@ async def on_command_error(ctx, error):
     embed.add_field(name="오류 내용", value=f"```py\n{error}```")
     await (bot.get_channel(852767242704650290)).send(embed=embed)
     await ctx.message.add_reaction("⚠️")
+    print(error)
 
 
 bot.remove_command("help")
