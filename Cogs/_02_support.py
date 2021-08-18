@@ -148,7 +148,7 @@ class Support(commands.Cog, name="지원"):
                     미동의시 봇 사용이 불가능합니다.",
             color=embedcolor,
         )
-        await ctx.send(
+        msg = await ctx.reply(
             embed=embed,
             components=[
                 [
@@ -168,7 +168,7 @@ class Support(commands.Cog, name="지원"):
             return await ctx.reply("가입이 취소되었습니다.")
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
             await cur.execute(f"INSERT INTO joined VALUES ({ctx.author.id})")
-        await ctx.reply("가입되었습니다.")
+        await msg.edit(embed=discord.Embed(title='가입 성공', description='성공적으로 가입되었습니다', color=embedcolor), component=[])
 
     @commands.command(name="탈퇴", help="짤방러 봇의 사용 권한을 포기하고 개인정보를 삭제합니다.", enabled=False)
     @commands.cooldown(1, 60, commands.BucketType.user)
@@ -183,14 +183,39 @@ class Support(commands.Cog, name="지원"):
                             title="탈퇴 실패", description="가입된 적이 없습니다.", color=errorcolor
                         )
                     )
+        embed = discord.Embed(
+            title="짤방러 탈퇴",
+            description="정말로 짤방러 서비스를 탈퇴하시겠습니까?\n모든 정보는 지워지며, 복구할 수 없습니다.",
+            color=embedcolor,
+        )
+        msg = await ctx.reply(
+            embed=embed,
+            components=[
+                [
+                    Button(style=ButtonStyle.green, label="탈퇴", emoji="✅"),
+                    Button(style=ButtonStyle.red, label="취소", emoji="❎"),
+                ]
+            ],
+        )
+        try:
+            await self.bot.wait_for(
+                "button_click",
+                check=lambda i: i.author == ctx.author
+                and i.channel == ctx.channel
+                and i.component.label == "탈퇴",
+            )
+        except __import__("asyncio").TimeoutError:
+            return await ctx.reply("탈퇴가 취소되었습니다.")
+        async with aiosql.connect("memebot.db", isolation_level=None) as cur:
             async with cur.execute(
                 f"SELECT * FROM usermeme WHERE id=?", (ctx.author.id,)
             ) as result:
                 result = await result.fetchall()
             for i in result:
-                await cur.execute(f"UPDATE usermeme SET id=? WHERE id=?", (0, i[0]))
-            await cur.execute(f"DELETE FROM usermeme WHERE id=?", (ctx.author.id,))
-        await ctx.reply("탈퇴되었습니다.")
+                await cur.execute(f"UPDATE joined SET id=? WHERE id=?", (0, i[0]))
+            await cur.execute(f"DELETE FROM joined WHERE id=?", (ctx.author.id,))
+        await msg.edit(embed=discord.Embed(title='탈퇴 완료', description='성공적으로 탈퇴되었습니다', color=embedcolor), components=[])
+
 
 
 def setup(bot):

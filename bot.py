@@ -9,14 +9,15 @@ from discord.ext import commands, tasks
 from tool import (
     errorcolor,
     get_prefix,
+    reply_component_msg_prop,
     UserOnBlacklist,
     NotJoined,
 )
 from shutil import copy2
-from discord_components import DiscordComponents
+from discord_components import DiscordComponents, Select, SelectOption
 import aiofiles
-from discord_components import Select, SelectOption
 import asyncio
+
 
 test = __import__("platform").system() == "Windows"
 if test:
@@ -33,6 +34,7 @@ bot = commands.Bot(
 )
 presences = []
 component = DiscordComponents(bot)
+discord.Message.reply = reply_component_msg_prop
 
 
 @bot.event
@@ -160,16 +162,15 @@ async def before_invoke(ctx):
             result = await result.fetchall()
             if result:
                 await ctx.reply(f"{ctx.author} 님은 `{result[0][1]}`의 사유로 차단되셨습니다.")
-                raise UserOnBlacklist
-    if ctx.command.name != "가입":
-        async with aiosql.connect("memebot.db") as cur:
+                raise UserOnBlacklist('User is on blacklist')
+        if ctx.command.name != "가입":
             async with cur.execute(
                 "SELECT * FROM joined WHERE id=?", (ctx.author.id,)
             ) as result:
                 result = await result.fetchall()
-                if result:
+                if not result:
                     await ctx.reply("가입 명령어를 통해 사용 권한을 얻으세요.")
-                    raise NotJoined
+                    raise NotJoined('User Didn\'t Join')
     async with aiofiles.open("cmd.log", "a") as f:
         await f.write(
             f"{ctx.author}({ctx.author.id})\n{ctx.message.content}\n{ctx.message.created_at}"
