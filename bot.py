@@ -12,6 +12,7 @@ from tool import (
     reply_component_msg_prop,
     UserOnBlacklist,
     NotJoined,
+    OnTestMode
 )
 from shutil import copy2
 from discord_components import DiscordComponents, Select, SelectOption
@@ -34,7 +35,7 @@ bot = commands.Bot(
 )
 presences = []
 component = DiscordComponents(bot)
-discord.Message.reply = reply_component_msg_prop
+# discord.Message.reply = reply_component_msg_prop
 
 
 @bot.event
@@ -101,6 +102,9 @@ async def on_ready():
         #update_koreanbots.start()
         backupdb.start()
         change_presence.start()
+    else:
+        for i in bot.commands:
+            i.enabled = True
     await bot.get_channel(852767242704650290).send(("테봇 " if test else "") + "켜짐")
 
 
@@ -155,6 +159,9 @@ async def on_guild_remove(guild):
 async def before_invoke(ctx):
     if ctx.author.id in bot.owner_ids:
         return
+    if test:
+        if ctx.author.id != bot.owner_ids[0]:
+            raise OnTestMode('On test mode')
     async with aiosql.connect("memebot.db") as cur:
         async with cur.execute(
             "SELECT * FROM blacklist WHERE id=?", (ctx.author.id,)
@@ -163,14 +170,14 @@ async def before_invoke(ctx):
             if result:
                 await ctx.reply(f"{ctx.author} 님은 `{result[0][1]}`의 사유로 차단되셨습니다.")
                 raise UserOnBlacklist('User is on blacklist')
-        if ctx.command.name != "가입":
-            async with cur.execute(
-                "SELECT * FROM joined WHERE id=?", (ctx.author.id,)
-            ) as result:
-                result = await result.fetchall()
-                if not result:
-                    await ctx.reply("가입 명령어를 통해 사용 권한을 얻으세요.")
-                    raise NotJoined('User Didn\'t Join')
+        # if ctx.command.name != "가입":
+        #     async with cur.execute(
+        #         "SELECT * FROM joined WHERE id=?", (ctx.author.id,)
+        #     ) as result:
+        #         result = await result.fetchall()
+        #         if not result:
+        #             await ctx.reply("가입 명령어를 통해 사용 권한을 얻으세요.")
+        #             raise NotJoined('User Didn\'t Join')
     async with aiofiles.open("cmd.log", "a") as f:
         await f.write(
             f"{ctx.author}({ctx.author.id})\n{ctx.message.content}\n{ctx.message.created_at}"

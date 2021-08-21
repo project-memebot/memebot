@@ -81,3 +81,7 @@ class UserOnBlacklist(Exception):
 
 class NotJoined(Exception):
     pass
+
+
+class OnTestMode(Exception):
+    pass
