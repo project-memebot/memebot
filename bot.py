@@ -7,12 +7,13 @@ import aiohttp
 import discord
 from discord.ext import commands, tasks
 from tool import (
+    embedcolor,
     errorcolor,
     get_prefix,
     reply_component_msg_prop,
     UserOnBlacklist,
     NotJoined,
-    OnTestMode
+    OnTestMode,
 )
 from shutil import copy2
 from discord_components import DiscordComponents, Select, SelectOption
@@ -99,7 +100,7 @@ async def on_ready():
     print("ready")
     if not test:
         await backupdb()
-        #update_koreanbots.start()
+        update_koreanbots.start()
         backupdb.start()
         change_presence.start()
     else:
@@ -120,6 +121,8 @@ async def backupdb():
         str(datetime.utcnow() + timedelta(hours=9)),
         files=[discord.File("backup.db"), discord.File("cmd.log")],
     )
+    with open("cmd.log", "w") as f:
+        f.write("")
 
 
 @tasks.loop(minutes=30)
@@ -128,7 +131,7 @@ async def update_koreanbots():
         koreanbots_token = load(f)
     async with aiohttp.ClientSession() as session:
         async with session.post(
-            "https://koreanbots.dev/api/v2/bots/852802390083371028/stats",
+            "https://koreanbots.dev/api/v2/bots/875908453548326922/stats",
             data={"servers": len(bot.guilds), "shards": 1},
             headers={"Authorization": koreanbots_token},
         ) as res:
@@ -137,15 +140,16 @@ async def update_koreanbots():
                 await (bot.get_channel(852767242704650290)).send(
                     f"Koreanbots API 요청에 실패함\n{await res.json()}"
                 )
-                
-                
+
+
 @bot.event
 async def on_guild_join(guild):
     embed = discord.Embed(title="서버 참여", color=embedcolor)
     embed.add_field(name="서버 정보", value=f"{guild.name} ({guild.id})")
     embed.set_thumbnail(url=guild.icon_url)
     embed.set_footer(icon_url=guild.owner.avatar_url, text=f"{guild.owner}")
-    await (self.bot.get_channel(852767242704650290)).send(embed=embed)
+    await (bot.get_channel(852767242704650290)).send(embed=embed)
+
 
 @bot.event
 async def on_guild_remove(guild):
@@ -153,7 +157,8 @@ async def on_guild_remove(guild):
     embed.add_field(name="서버 정보", value=f"{guild.name} ({guild.id})")
     embed.set_thumbnail(url=guild.icon_url)
     embed.set_footer(icon_url=guild.owner.avatar_url, text=f"{guild.owner}")
-    await (self.bot.get_channel(852767242704650290)).send(embed=embed)
+    await (bot.get_channel(852767242704650290)).send(embed=embed)
+
 
 @bot.before_invoke
 async def before_invoke(ctx):
@@ -161,7 +166,7 @@ async def before_invoke(ctx):
         return
     if test:
         if ctx.author.id != bot.owner_ids[0]:
-            raise OnTestMode('On test mode')
+            raise OnTestMode("On test mode")
     async with aiosql.connect("memebot.db") as cur:
         async with cur.execute(
             "SELECT * FROM blacklist WHERE id=?", (ctx.author.id,)
@@ -169,7 +174,7 @@ async def before_invoke(ctx):
             result = await result.fetchall()
             if result:
                 await ctx.reply(f"{ctx.author} 님은 `{result[0][1]}`의 사유로 차단되셨습니다.")
-                raise UserOnBlacklist('User is on blacklist')
+                raise UserOnBlacklist("User is on blacklist")
         # if ctx.command.name != "가입":
         #     async with cur.execute(
         #         "SELECT * FROM joined WHERE id=?", (ctx.author.id,)
@@ -198,7 +203,7 @@ async def on_message(message):
 @bot.event
 async def on_button_click(interaction):
     if interaction.component.label == "🚨 신고하기":
-        await interaction.respond(content='DM을 확인해 주세요')
+        await interaction.respond(content="DM을 확인해 주세요")
         report_msg = await interaction.author.send(
             "신고 사유를 선택해 주세요",
             components=[
@@ -264,7 +269,7 @@ async def on_button_click(interaction):
             embed=embed,
         )
         remove(filename)
-        await report_msg.edit(content='신고 접수가 완료되었습니다', components=[])
+        await report_msg.edit(content="신고 접수가 완료되었습니다", components=[])
 
 
 @bot.event
@@ -278,12 +283,12 @@ async def on_command_error(ctx, error):
         commands.MissingRequiredArgument,
     ]:
         return
-    
+
     if isinstance(error, commands.CommandOnCooldown):
         return await ctx.send(f"{round(error.retry_after, 2)}초 후 다시 시도해 주세요")
     elif isinstance(error, commands.MaxConcurrencyReached):
         return await ctx.send("현재 실행중인 명령어를 먼저 마쳐 주세요")
-    
+
     if test:
         raise error
     embed = discord.Embed(
