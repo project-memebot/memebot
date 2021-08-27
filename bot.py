@@ -24,6 +24,8 @@ import asyncio
 test = __import__("platform").system() == "Windows"
 if test:
     chdir("python/meme-bot")
+else:
+    chdir('/meme-bot')
 
 with open("testertoken.bin" if test else "token.bin", "rb") as tokenfile:
     token = load(tokenfile)

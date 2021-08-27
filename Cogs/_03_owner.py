@@ -1,6 +1,7 @@
 from discord.ext import commands
 import discord
 import aiosqlite as aiosql
+from os import popen
 
 
 class Owner(commands.Cog, name="오너"):
@@ -30,5 +31,17 @@ class Owner(commands.Cog, name="오너"):
             await self.bot.get_channel(852811274886447114).fetch_message(meme_id)
         ).delete()
         await ctx.reply("완료")
+
+    @commands.command(name="깃풀", aliases=["git pull", "깃허브 풀", "ㄱㅍ"])
+    @commands.is_owner()
+    async def _git(self, ctx):
+        result = popen("git pull").read()
+        popen("python bot.py")
+        await ctx.reply(
+            embed=discord.Embed(title="깃 풀", description=f"완료.\n```{result}```")
+        )
+        await self.bot.close()
+
+
 def setup(bot):
     bot.add_cog(Owner(bot))
