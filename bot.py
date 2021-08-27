@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from itertools import cycle
-from os import listdir, chdir, remove
+from os import listdir, chdir, remove, popen
 from pickle import load
 import aiosqlite as aiosql
 import aiohttp
@@ -25,7 +25,7 @@ test = __import__("platform").system() == "Windows"
 if test:
     chdir("python/meme-bot")
 else:
-    chdir('/meme-bot')
+    popen("sudo cd /meme-bot")
 
 with open("testertoken.bin" if test else "token.bin", "rb") as tokenfile:
     token = load(tokenfile)
