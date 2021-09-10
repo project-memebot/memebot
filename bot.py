@@ -39,6 +39,7 @@ bot = commands.Bot(
 presences = []
 component = DiscordComponents(bot)
 # discord.Message.reply = reply_component_msg_prop
+used_cmds = 0
 
 
 @bot.event
@@ -125,6 +126,8 @@ async def backupdb():
     )
     with open("cmd.log", "w") as f:
         f.write("")
+    with open("used_cmds.txt", "w") as f:
+        f.write(str(used_cmds))
 
 
 @tasks.loop(minutes=30)
@@ -189,6 +192,7 @@ async def before_invoke(ctx):
         await f.write(
             f"{ctx.author}({ctx.author.id})\n{ctx.message.content}\n{ctx.message.created_at}"
         )
+    used_cmds += 1
 
 
 @bot.event
