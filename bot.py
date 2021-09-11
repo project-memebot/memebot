@@ -167,6 +167,7 @@ async def on_guild_remove(guild):
 
 @bot.before_invoke
 async def before_invoke(ctx):
+    global used_cmds
     if ctx.author.id in bot.owner_ids:
         return
     if test:
