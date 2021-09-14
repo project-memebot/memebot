@@ -168,7 +168,12 @@ class Support(commands.Cog, name="지원"):
             return await ctx.reply("가입이 취소되었습니다.")
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
             await cur.execute(f"INSERT INTO joined VALUES ({ctx.author.id})")
-        await msg.edit(embed=discord.Embed(title='가입 성공', description='성공적으로 가입되었습니다', color=embedcolor), component=[])
+        await msg.edit(
+            embed=discord.Embed(
+                title="가입 성공", description="성공적으로 가입되었습니다", color=embedcolor
+            ),
+            component=[],
+        )
 
     @commands.command(name="탈퇴", help="짤방러 봇의 사용 권한을 포기하고 개인정보를 삭제합니다.", enabled=False)
     @commands.cooldown(1, 60, commands.BucketType.user)
@@ -214,8 +219,12 @@ class Support(commands.Cog, name="지원"):
             for i in result:
                 await cur.execute(f"UPDATE joined SET id=? WHERE id=?", (0, i[0]))
             await cur.execute(f"DELETE FROM joined WHERE id=?", (ctx.author.id,))
-        await msg.edit(embed=discord.Embed(title='탈퇴 완료', description='성공적으로 탈퇴되었습니다', color=embedcolor), components=[])
-
+        await msg.edit(
+            embed=discord.Embed(
+                title="탈퇴 완료", description="성공적으로 탈퇴되었습니다", color=embedcolor
+            ),
+            components=[],
+        )
 
 
 def setup(bot):
