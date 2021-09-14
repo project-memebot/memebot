@@ -3,7 +3,14 @@ import discord
 import aiofiles
 import aiohttp
 from discord.ext import commands
-from discord_components import Button, ButtonStyle, Select, SelectOption, Component, ActionRow
+from discord_components import (
+    Button,
+    ButtonStyle,
+    Select,
+    SelectOption,
+    Component,
+    ActionRow,
+)
 from os import remove
 from typing import Union, List
 
@@ -67,8 +74,21 @@ async def send_component_msg(
     delete_after: float = None,
     nonce: Union[str, int] = None,
     **options,
-    ) -> discord.Message:
-    await channel.send(content=content, tts=tts, embed=embed, file=file, files=files, mention_author=mention_author, allowed_mentions=allowed_mentions, reference=reference, components=components, delete_after=delete_after, nonce=nonce, **options)
+) -> discord.Message:
+    await channel.send(
+        content=content,
+        tts=tts,
+        embed=embed,
+        file=file,
+        files=files,
+        mention_author=mention_author,
+        allowed_mentions=allowed_mentions,
+        reference=reference,
+        components=components,
+        delete_after=delete_after,
+        nonce=nonce,
+        **options,
+    )
 
 
 async def reply_component_msg_prop(msg, *args, **kwargs):
