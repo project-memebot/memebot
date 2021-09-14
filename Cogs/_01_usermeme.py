@@ -249,7 +249,6 @@ class Usermeme(commands.Cog, name="짤 공유"):
         except ValueError:
             await msg.edit(embed=discord.Embed(title="짤을 찾을 수 없습니다.", color=errorcolor))
 
-
     @commands.command(
         name="여러짤업로드", aliases=("ㅇㄹㅉㅇㄹㄷ",), help="여러 짤을 업로드 합니다", enabled=True
     )
