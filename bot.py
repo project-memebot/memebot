@@ -1,25 +1,18 @@
+import asyncio
 from datetime import datetime, timedelta
 from itertools import cycle
-from os import listdir, chdir, remove, popen
+from os import chdir, listdir, popen, remove
 from pickle import load
-import aiosqlite as aiosql
+from shutil import copy2
+
+import aiofiles
 import aiohttp
+import aiosqlite as aiosql
 import discord
 from discord.ext import commands, tasks
-from tool import (
-    embedcolor,
-    errorcolor,
-    get_prefix,
-    reply_component_msg_prop,
-    UserOnBlacklist,
-    NotJoined,
-    OnTestMode,
-)
-from shutil import copy2
 from discord_components import DiscordComponents, Select, SelectOption
-import aiofiles
-import asyncio
-
+from tool import (NotJoined, OnTestMode, UserOnBlacklist, embedcolor,
+                  errorcolor, get_prefix, reply_component_msg_prop)
 
 test = __import__("platform").system() == "Windows"
 if test:
@@ -211,72 +204,78 @@ async def on_message(message):
 async def on_button_click(interaction):
     if interaction.component.label == "🚨 신고하기":
         await interaction.respond(content="DM을 확인해 주세요")
-        report_msg = await interaction.author.send(
-            "신고 사유를 선택해 주세요",
-            components=[
-                Select(
-                    placeholder="신고 사유",
-                    options=[
-                        SelectOption(
-                            label="1",
-                            value="1",
-                            description="대한민국 법에 어긋나는 짤(초상권, etc...)",
-                        ),
-                        SelectOption(
-                            label="2",
-                            value="2",
-                            description="인신공격, 저격, 분쟁, 비방, 비하 등의 위험이 있는 짤",
-                        ),
-                        SelectOption(
-                            label="3", value="3", description="홍보 목적으로 업로드된 짤"
-                        ),
-                        SelectOption(
-                            label="4",
-                            value="4",
-                            description="정치드립/19금/19금 드립 등 불쾌할 수 있는 짤",
-                        ),
-                        SelectOption(
-                            label="5",
-                            value="5",
-                            description="같은 짤 재업로드",
-                        ),
-                        SelectOption(
-                            label="6",
-                            value="6",
-                            description="특정 정치 사상을 가지거나 특정인들의 팬 등 소수들만 재미있는 짤",
-                        ),
-                        SelectOption(
-                            label="7",
-                            value="7",
-                            description="19금 용어 등을 모자이크하지 않음 / 모자이크되지 않은 욕설이 2개 이상",
-                        ),
-                    ],
-                    max_values=7,
-                )
-            ],
-            ephemeral=False,
+        await interaction.author.send(
+            embed=discord.Embed(
+                description="현재 신고 기능이 고장나서 작동을 안 하니 밈 조회 결과를 캡처해서 [서포트 서버](http://support.memebot.kro.kr)에서 티켓을 열어 주세요."
+            ),
+            color=errorcolor,
         )
-        msg = await interaction.channel.fetch_message(interaction.message.id)
-        try:
-            interaction = await bot.wait_for("select_option")
-        except asyncio.TimeoutError:
-            return await interaction.author.send("시간 초과로 신고가 취소되었습니다")
-        embed = msg.embeds[0]
-        date = __import__("datetime").datetime.utcnow() + __import__(
-            "datetime"
-        ).timedelta(hours=9)
-        filename = f'report_{date.strftime("%y%b%d_%H%M%S")}_{interaction.author.id}.{embed.image.url.split("?")[0].split(".")[-1]}'
-        async with aiohttp.ClientSession() as session:
-            async with session.get(embed.image.url) as resp:
-                async with aiofiles.open(filename, "wb") as f:
-                    await f.write(await resp.read())
-        await bot.get_channel(869414081411567676).send(
-            f"{interaction.author.mention}: `{'`, `'.join([i.value for i in interaction.component])}`",
-            file=discord.File(filename),
-            embed=embed,
-        )
-        remove(filename)
-        await report_msg.edit(content="신고 접수가 완료되었습니다", components=[])
+        # report_msg = await interaction.author.send(
+        #     "신고 사유를 선택해 주세요",
+        #     components=[
+        #         Select(
+        #             placeholder="신고 사유",
+        #             options=[
+        #                 SelectOption(
+        #                     label="1",
+        #                     value="1",
+        #                     description="대한민국 법에 어긋나는 짤(초상권, etc...)",
+        #                 ),
+        #                 SelectOption(
+        #                     label="2",
+        #                     value="2",
+        #                     description="인신공격, 저격, 분쟁, 비방, 비하 등의 위험이 있는 짤",
+        #                 ),
+        #                 SelectOption(
+        #                     label="3", value="3", description="홍보 목적으로 업로드된 짤"
+        #                 ),
+        #                 SelectOption(
+        #                     label="4",
+        #                     value="4",
+        #                     description="정치드립/19금/19금 드립 등 불쾌할 수 있는 짤",
+        #                 ),
+        #                 SelectOption(
+        #                     label="5",
+        #                     value="5",
+        #                     description="같은 짤 재업로드",
+        #                 ),
+        #                 SelectOption(
+        #                     label="6",
+        #                     value="6",
+        #                     description="특정 정치 사상을 가지거나 특정인들의 팬 등 소수들만 재미있는 짤",
+        #                 ),
+        #                 SelectOption(
+        #                     label="7",
+        #                     value="7",
+        #                     description="19금 용어 등을 모자이크하지 않음 / 모자이크되지 않은 욕설이 2개 이상",
+        #                 ),
+        #             ],
+        #             max_values=7,
+        #         )
+        #     ],
+        #     ephemeral=False,
+        # )
+        # msg = await interaction.channel.fetch_message(interaction.message.id)
+        # try:
+        #     interaction = await bot.wait_for("select_option")
+        # except asyncio.TimeoutError:
+        #     return await interaction.author.send("시간 초과로 신고가 취소되었습니다")
+        # embed = msg.embeds[0]
+        # date = __import__("datetime").datetime.utcnow() + __import__(
+        #     "datetime"
+        # ).timedelta(hours=9)
+        # filename = f'report_{date.strftime("%y%b%d_%H%M%S")}_{interaction.author.id}.{embed.image.url.split("?")[0].split(".")[-1]}'
+        # async with aiohttp.ClientSession() as session:
+        #     async with session.get(embed.image.url) as resp:
+        #         async with aiofiles.open(filename, "wb") as f:
+        #             await f.write(await resp.read())
+        # await bot.get_channel(869414081411567676).send(
+        #     f"{interaction.author.mention}: `{'`, `'.join([i.value for i in interaction.component])}`",
+        #     file=discord.File(filename),
+        #     embed=embed,
+        # )
+        # remove(filename)
+        # await report_msg.edit(content="신고 접수가 완료되었습니다", components=[])
 
 
 @bot.event

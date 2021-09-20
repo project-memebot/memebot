@@ -1,7 +1,8 @@
-from discord.ext import commands
-import discord
-import aiosqlite as aiosql
 from os import popen
+
+import aiosqlite as aiosql
+import discord
+from discord.ext import commands
 
 
 class Owner(commands.Cog, name="오너"):

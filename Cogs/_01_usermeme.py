@@ -1,19 +1,21 @@
-from asyncio import TimeoutError
-from random import choice
-import discord
-import aiohttp
-from EZPaginator import Paginator
-from discord.ext import commands
-from tool import embedcolor, sendmeme, errorcolor, set_buttons  # , wait_buttons
-from datetime import datetime, timedelta
-import aiofiles
-import aiosqlite as aiosql
-from shutil import rmtree
-from os import remove, makedirs, listdir
-from discord_components import Button, ButtonStyle
 import zipfile
+from asyncio import TimeoutError
+from datetime import datetime, timedelta
+from os import listdir, makedirs, remove
 from os.path import isdir
+from random import choice
+from shutil import rmtree
 from string import ascii_letters, digits
+
+import aiofiles
+import aiohttp
+import aiosqlite as aiosql
+import discord
+from discord.ext import commands
+from discord_components import Button, ButtonStyle
+from EZPaginator import Paginator
+from tool import (embedcolor, errorcolor, sendmeme,  # , wait_buttons
+                  set_buttons)
 
 
 class Usermeme(commands.Cog, name="짤 공유"):

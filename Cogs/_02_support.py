@@ -1,9 +1,10 @@
 from logging import error
+
 import aiosqlite as aiosql
 import discord
 from discord.ext import commands
-from tool import embedcolor, errorcolor
 from discord_components import Button, ButtonStyle
+from tool import embedcolor, errorcolor
 
 
 class Support(commands.Cog, name="지원"):
@@ -79,7 +80,7 @@ class Support(commands.Cog, name="지원"):
             return await ctx.reply(f"{cmd} 명령어를 찾을 수 없습니다.")
         embed = discord.Embed(
             title=f"도움말",
-            description=f"**{cmd.qualified_name if cmd.parents else cmd.name} \
+            description=f"**{cmd.qualified_name if cmd.parents is not None else cmd.name} \
         **```diff\n+ {cmd.help}```",
             color=embedcolor,
         )
