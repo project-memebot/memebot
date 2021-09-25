@@ -1,14 +1,9 @@
-
-from typing import List, Union
-
 import aiosqlite as aiosql
 import discord
 from discord.ext import commands
 from discord_components import (
-    ActionRow,
     Button,
     ButtonStyle,
-    Component,
 )
 
 errorcolor = 0xFFFF00
@@ -57,42 +52,6 @@ async def set_buttons(ctx: commands.Context):
         embed=discord.Embed(title="밈을 불러오는중..."),
         components=[Button(style=ButtonStyle.red, label="🚨 신고하기")],
     )
-
-
-async def send_component_msg(
-    channel: discord.abc.Messageable,
-    content: str = "",
-    *,
-    tts: bool = False,
-    embed: discord.Embed = None,
-    file: discord.File = None,
-    files: List[discord.File] = None,
-    mention_author: bool = None,
-    allowed_mentions: discord.AllowedMentions = discord.AllowedMentions.none(),
-    reference: discord.Message = None,
-    components: List[Union[ActionRow, Component, List[Component]]] = None,
-    delete_after: float = None,
-    nonce: Union[str, int] = None,
-    **options,
-) -> discord.Message:
-    return await channel.send(
-        content=content,
-        tts=tts,
-        embed=embed,
-        file=file,
-        files=files,
-        mention_author=mention_author,
-        allowed_mentions=allowed_mentions,
-        reference=reference,
-        components=components,
-        delete_after=delete_after,
-        nonce=nonce,
-        **options,
-    )
-
-
-async def reply_component_msg_prop(msg, *args, **kwargs):
-    return await send_component_msg(msg.channel, *args, **kwargs, reference=msg)
 
 
 class UserOnBlacklist(Exception):
