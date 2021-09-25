@@ -1,4 +1,3 @@
-from logging import error
 
 import aiosqlite as aiosql
 import discord
@@ -90,7 +89,8 @@ class Support(commands.Cog, name="지원"):
         )
         embed.add_field(
             name="사용법",
-            value=f"`{prefix}{cmd.qualified_name if cmd.parents else cmd.name} {'' if cmd.usage is None else cmd.usage}`",
+            value=f"`{prefix}{cmd.qualified_name if cmd.parents else cmd.name} \
+{'' if cmd.usage is None else cmd.usage}`",
         )
         await ctx.reply(embed=embed)
 
@@ -102,7 +102,8 @@ class Support(commands.Cog, name="지원"):
     async def _credit(self, ctx):
         embed = discord.Embed(
             title="크레딧",
-            description="[프로필 사진 원본 이미지](https://www.flaticon.com/free-icon/picture_2659360?term=image&page=1&position=10&page=1&position=10&related_id=2659360&origin=search)\n\
+            description="[프로필 사진 원본 이미지](https://www.flaticon.com/free-icon/picture_2659360?term=image&page=1\
+&position=10&page=1&position=10&related_id=2659360&origin=search)\n\
             프로필 사진 제작자 - <@441202161481809922>",
             color=embedcolor,
         )
@@ -205,9 +206,9 @@ class Support(commands.Cog, name="지원"):
         try:
             await self.bot.wait_for(
                 "button_click",
-                check=lambda i: i.author == ctx.author
-                and i.channel == ctx.channel
-                and i.component.label == "탈퇴",
+                check=lambda b: b.author == ctx.author
+                and b.channel == ctx.channel
+                and b.component.label == "탈퇴",
             )
         except __import__("asyncio").TimeoutError:
             return await ctx.reply("탈퇴가 취소되었습니다.")

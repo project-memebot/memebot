@@ -101,7 +101,9 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 "INSERT INTO usermeme(id, uploader_id, title, url) VALUES(?, ?, ?, ?)",
                 (img_msg.id, ctx.author.id, title, img_msg.attachments[0].url),
             )
-        await msg.edit(content=f"짤 업로드 완료\n짤 ID: {img_msg.id}", embed=None, components=[])
+        await msg.edit(
+            content=f"짤 업로드 완료\n짤 ID: {img_msg.id}", embed=None, components=[]
+        )
 
     @commands.command(
         name="랜덤",
@@ -287,7 +289,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 if not i.lower().endswith((".jpg", ".jpeg", ".png", ".webp", ".gif")):
                     return await upmsg.edit("지원되지 앟는 파일이 있어 업로드에 실패했습니다.")
                 for j in (".".join(i.split(".")[:-2])).split():
-                    if not j in letters:
+                    if j not in letters:
                         await ctx.reply(
                             "유해할 수 있는 파일이 있어 업로드에 실패했습니다.\n\
 파일명에서 특수문자를 제거하여 주십시오.\n\

@@ -38,7 +38,7 @@ async def sendmeme(bot, memeid, msg):
             embed.set_author(
                 icon_url=uploader.avatar_url,
                 name=str(uploader),
-                url=f'https://discord.com/users/{uploader.id}'
+                url=f"https://discord.com/users/{uploader.id}",
             )
         except discord.NotFound:
             embed.set_author(name="사용자 정보를 찾을 수 없음")

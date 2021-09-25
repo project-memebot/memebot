@@ -12,13 +12,11 @@ import discord
 from discord.ext import commands, tasks
 from discord_components import DiscordComponents, Select, SelectOption
 from tool import (
-    NotJoined,
     OnTestMode,
     UserOnBlacklist,
     embedcolor,
     errorcolor,
     get_prefix,
-    reply_component_msg_prop,
 )
 
 test = __import__("platform").system() == "Windows"
@@ -264,7 +262,10 @@ async def on_button_click(interaction):
         date = __import__("datetime").datetime.utcnow() + __import__(
             "datetime"
         ).timedelta(hours=9)
-        filename = f'report_{date.strftime("%y%b%d_%H%M%S")}_{interaction.author.id}.{embed.image.url.split("?")[0].split(".")[-1]}'
+        filename = (
+                f'report_{date.strftime("%y%b%d_%H%M%S")}_{interaction.author.id}.'
+                + embed.image.url.split("?")[0].split(".")[-1]
+        )
         async with aiohttp.ClientSession() as session:
             async with session.get(embed.image.url) as resp:
                 async with aiofiles.open(filename, "wb") as f:
