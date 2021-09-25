@@ -14,8 +14,7 @@ import discord
 from discord.ext import commands
 from discord_components import Button, ButtonStyle
 from EZPaginator import Paginator
-from tool import (embedcolor, errorcolor, sendmeme,  # , wait_buttons
-                  set_buttons)
+from tool import embedcolor, errorcolor, sendmeme, set_buttons  # , wait_buttons
 
 
 class Usermeme(commands.Cog, name="짤 공유"):
@@ -70,11 +69,11 @@ class Usermeme(commands.Cog, name="짤 공유"):
             remove(filename)
             return await ctx.send("파일 크기가 너무 큽니다")
         await ctx.send("짤의 제목을 입력해주세요\n제목이 없으면 `없음`을 입력해주세요")
-        msg = await self.bot.wait_for(
+        message = await self.bot.wait_for(
             "message",
             check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
         )
-        title = "" if msg.content == "없음" else msg.content
+        title = "" if message.content == "없음" else message.content
         embed = discord.Embed(title="확인", description=title, color=embedcolor)
         embed.set_image(url=url)
         msg = await ctx.send(
@@ -102,7 +101,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 "INSERT INTO usermeme(id, uploader_id, title, url) VALUES(?, ?, ?, ?)",
                 (img_msg.id, ctx.author.id, title, img_msg.attachments[0].url),
             )
-        await msg.edit(content="짤 업로드 완료", components=[])
+        await msg.edit(content=f"짤 업로드 완료\n짤 ID: {img_msg.id}", embed=None, components=[])
 
     @commands.command(
         name="랜덤",

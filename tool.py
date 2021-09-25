@@ -1,13 +1,15 @@
-from os import remove
+
 from typing import List, Union
 
-import aiofiles
-import aiohttp
 import aiosqlite as aiosql
 import discord
 from discord.ext import commands
-from discord_components import (ActionRow, Button, ButtonStyle, Component,
-                                Select, SelectOption)
+from discord_components import (
+    ActionRow,
+    Button,
+    ButtonStyle,
+    Component,
+)
 
 errorcolor = 0xFFFF00
 embedcolor = 0x0000FF
@@ -38,7 +40,11 @@ async def sendmeme(bot, memeid, msg):
     else:
         try:
             uploader = await bot.fetch_user(result[1])
-            embed.set_author(icon_url=uploader.avatar_url, name=str(uploader) + f'({uploader.id})',)
+            embed.set_author(
+                icon_url=uploader.avatar_url,
+                name=str(uploader),
+                url=f'https://discord.com/users/{uploader.id}'
+            )
         except discord.NotFound:
             embed.set_author(name="사용자 정보를 찾을 수 없음")
     embed.set_footer(text=f"짤 ID: {result[0]}")
@@ -69,7 +75,7 @@ async def send_component_msg(
     nonce: Union[str, int] = None,
     **options,
 ) -> discord.Message:
-    await channel.send(
+    return await channel.send(
         content=content,
         tts=tts,
         embed=embed,
