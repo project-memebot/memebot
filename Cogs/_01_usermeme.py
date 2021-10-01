@@ -62,6 +62,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
                     await f.write(await resp.read())
         try:
             img_msg = await self.bot.get_channel(852811274886447114).send(
+                content=f'{ctx.author.mention}({ctx.author.id})',
                 file=discord.File(filename)
             )
             remove(filename)
@@ -87,15 +88,17 @@ class Usermeme(commands.Cog, name="짤 공유"):
             ],
         )
         try:
-            await self.bot.wait_for(
+            interaction = await self.bot.wait_for(
                 "button_click",
                 check=lambda m: m.author == ctx.author
                 and m.channel == ctx.channel
-                and m.component.label == "등록",
             )
         except TimeoutError:
             await img_msg.delete()
-            return await ctx.reply("취소되었습니다")
+            return await msg.edit("취소되었습니다", embed=None, components=[])
+        if interaction.label == '취소':
+            await img_msg.delete()
+            return await msg.edit("취소되었습니다", embed=None, components=[])
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
             await cur.execute(
                 "INSERT INTO usermeme(id, uploader_id, title, url) VALUES(?, ?, ?, ?)",
@@ -303,6 +306,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
             channel = self.bot.get_channel(852811274886447114)
             for i in listdir(f"memes/{ctx.author.id}"):
                 msg = await channel.send(
+                    content=f'{ctx.author.mention}({ctx.author.id})',
                     file=discord.File(f"memes/{ctx.author.id}/" + i)
                 )
                 await cur.execute(
