@@ -44,7 +44,7 @@ time.sleep(10)
 os.system(\'python3 bot.py\')
         """
             )
-        __import__("os").popen("python3 restart.py")
+        __import__("os").system("python3 restart.py")
         await ctx.reply(
             embed=discord.Embed(title="깃 풀", description=f"완료.\n```{result}```")
         )
