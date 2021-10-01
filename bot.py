@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime, timedelta
 from itertools import cycle
-from os import chdir, listdir, popen, remove
+from os import chdir, listdir, remove
 from pickle import load
 from shutil import copy2
 
@@ -20,10 +20,8 @@ from tool import (
 )
 
 test = __import__("platform").system() == "Windows"
-if test:
-    chdir("python/meme-bot")
-else:
-    popen("sudo cd /meme-bot")
+if not test:
+    chdir('meme-bot/')
 
 with open("testertoken.bin" if test else "token.bin", "rb") as tokenfile:
     token = load(tokenfile)
@@ -37,7 +35,6 @@ bot = commands.Bot(
 presences = []
 component = DiscordComponents(bot)
 # discord.Message.reply = reply_component_msg_prop
-used_cmds = 0
 
 
 @bot.event
@@ -120,12 +117,8 @@ async def backupdb():
     copy2("memebot.db", "backup.db")
     await (bot.get_channel(852767243360403497)).send(
         str(datetime.utcnow() + timedelta(hours=9)),
-        files=[discord.File("backup.db"), discord.File("cmd.log")],
+        file=discord.File("backup.db"),
     )
-    with open("cmd.log", "w") as f:
-        f.write("")
-    with open("used_cmds.txt", "w") as f:
-        f.write(str(used_cmds))
 
 
 @tasks.loop(minutes=30)
@@ -165,7 +158,6 @@ async def on_guild_remove(guild):
 
 @bot.before_invoke
 async def before_invoke(ctx):
-    global used_cmds
     if ctx.author.id in bot.owner_ids:
         return
     if test:
@@ -191,14 +183,14 @@ async def before_invoke(ctx):
         await f.write(
             f"{ctx.author}({ctx.author.id})\n{ctx.message.content}\n{ctx.message.created_at}"
         )
-    used_cmds += 1
 
 
 @bot.event
 async def on_message(message):
     if isinstance(message.channel, discord.DMChannel):
         return
-    if str(bot.user) in [i.name + "#" + i.discriminator for i in message.mentions]:
+    p = __import__('re').compile('<@!?875908453548326922>')
+    if p.match(message.content):
         await message.channel.send(
             f"{message.guild} 서버의 접두사는 `{await get_prefix(_bot=bot, message=message)}`입니다."
         )
