@@ -20,8 +20,6 @@ from tool import (
 )
 
 test = __import__("platform").system() == "Windows"
-if not test:
-    chdir('meme-bot/')
 
 with open("testertoken.bin" if test else "token.bin", "rb") as tokenfile:
     token = load(tokenfile)
