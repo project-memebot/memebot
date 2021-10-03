@@ -14,7 +14,7 @@ import discord
 from discord.ext import commands
 from discord_components import Button, ButtonStyle
 from EZPaginator import Paginator
-from tool import embedcolor, errorcolor, sendmeme, set_buttons  # , wait_buttons
+from tool import embedcolor, errorcolor, sendmeme, set_buttons
 
 
 class Usermeme(commands.Cog, name="짤 공유"):
@@ -101,8 +101,8 @@ class Usermeme(commands.Cog, name="짤 공유"):
             return await msg.edit("취소되었습니다", embed=None, components=[])
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
             await cur.execute(
-                "INSERT INTO usermeme(id, uploader_id, title, url) VALUES(?, ?, ?, ?)",
-                (img_msg.id, ctx.author.id, title, img_msg.attachments[0].url),
+                "INSERT INTO usermeme(id, uploader_id, title, url, date) VALUES(?, ?, ?, ?, ?)",
+                (img_msg.id, ctx.author.id, title, img_msg.attachments[0].url, str(img_msg.created_at)),
             )
         await msg.edit(
             content=f"짤 업로드 완료\n짤 ID: {img_msg.id}", embed=None, components=[]
@@ -155,7 +155,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
         embeds = [
             discord.Embed(
                 title=f"{i[2] if i[2] != '' else '`제목 없음`'} - ({memes.index(i) + 1}/{len(memes)})",
-                color=embedcolor,
+                color=embedcolor, timestamp=datetime.strptime(i[4], '%Y-%m-%d %H:%M:%S.f')
             )
             .set_image(url=i[3])
             .set_footer(text=f"밈 ID: {i[0]}")
@@ -192,7 +192,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
                     result = (await result.fetchall())[0]
                 except IndexError:
                     return await ctx.send("짤을 찾을 수 없습니다")
-        embed = discord.Embed(title=result[2], color=embedcolor)
+        embed = discord.Embed(title=result[2], color=embedcolor, timestamp=datetime.strptime(i[4], '%Y-%m-%d %H:%M:%S.f'))
         embed.set_image(url=result[3])
         m = await ctx.send("이 짤을 삭제할까요?\n`ㅇ`: OK, `ㄴ`: No", embed=embed)
         try:
@@ -310,8 +310,8 @@ class Usermeme(commands.Cog, name="짤 공유"):
                     file=discord.File(f"memes/{ctx.author.id}/" + i)
                 )
                 await cur.execute(
-                    f"INSERT INTO usermeme(id, uploader_id, title, url) VALUES (?, ?, ?, ?)",
-                    (msg.id, ctx.author.id, "", msg.attachments[0].url),
+                    f"INSERT INTO usermeme(id, uploader_id, title, url, date) VALUES (?, ?, ?, ?, ?)",
+                    (msg.id, ctx.author.id, "", msg.attachments[0].url, str(msg.created_at)),
                 )
         await upmsg.edit("업로드 완료")
         remove(filename)

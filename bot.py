@@ -74,7 +74,8 @@ async def on_ready():
     )
     async with aiosql.connect("memebot.db", isolation_level=None) as cur:
         await cur.execute(
-            "CREATE TABLE IF NOT EXISTS usermeme (id INTEGER PRIMARY KEY, uploader_id INTEGER, title text, url text)"
+            "CREATE TABLE IF NOT EXISTS usermeme (id INTEGER PRIMARY KEY, uploader_id INTEGER, title text, url text,\
+date text, stars INTEGER)"
         )
         await cur.execute(
             "CREATE TABLE IF NOT EXISTS blacklist (id INTEGER PRIMARY KEY, reason text)"
