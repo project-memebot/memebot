@@ -96,7 +96,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
         except TimeoutError:
             await img_msg.delete()
             return await msg.edit("취소되었습니다", embed=None, components=[])
-        if interaction.label == '취소':
+        if interaction.component.label == '취소':
             await img_msg.delete()
             return await msg.edit("취소되었습니다", embed=None, components=[])
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
