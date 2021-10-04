@@ -28,7 +28,11 @@ async def sendmeme(bot, memeid, msg):
     if not result:
         raise ValueError("Can't find meme")
     result = result[0]
-    embed = discord.Embed(title=result[2], color=embedcolor)
+    embed = discord.Embed(
+        title=result[2],
+        color=embedcolor,
+        timestamp=datetime.strptime(result[4], "%Y-%m-%d %H:%M:%S.%f"),
+    )
     embed.set_image(url=result[3])
     if result[1] == 0:
         embed.set_author(name="탈퇴한 유저")

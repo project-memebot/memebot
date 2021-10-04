@@ -155,7 +155,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
         embeds = [
             discord.Embed(
                 title=f"{i[2] if i[2] != '' else '`제목 없음`'} - ({memes.index(i) + 1}/{len(memes)})",
-                color=embedcolor, timestamp=datetime.strptime(i[4], '%Y-%m-%d %H:%M:%S.f')
+                color=embedcolor, timestamp=datetime.strptime(i[4], '%Y-%m-%d %H:%M:%S.%f')
             )
             .set_image(url=i[3])
             .set_footer(text=f"밈 ID: {i[0]}")
@@ -192,7 +192,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
                     result = (await result.fetchall())[0]
                 except IndexError:
                     return await ctx.send("짤을 찾을 수 없습니다")
-        embed = discord.Embed(title=result[2], color=embedcolor, timestamp=datetime.strptime(i[4], '%Y-%m-%d %H:%M:%S.f'))
+        embed = discord.Embed(title=result[2], color=embedcolor, timestamp=datetime.strptime(i[4], '%Y-%m-%d %H:%M:%S.%f'))
         embed.set_image(url=result[3])
         m = await ctx.send("이 짤을 삭제할까요?\n`ㅇ`: OK, `ㄴ`: No", embed=embed)
         try:
