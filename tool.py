@@ -5,7 +5,7 @@ from discord_components import (
     Button,
     ButtonStyle,
 )
-import datetime
+from datetime import datetime
 
 errorcolor = 0xFFFF00
 embedcolor = 0x0000FF
