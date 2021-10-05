@@ -262,7 +262,7 @@ async def on_button_click(interaction):
                 async with aiofiles.open(filename, "wb") as f:
                     await f.write(await resp.read())
         await bot.get_channel(869414081411567676).send(
-            f"{interaction.author.mention}: `{'`, `'.join([i.value for i in interaction.component])}`",
+            f"{interaction.author.mention}: `{'`, `'.join([i.value for i in list(interaction.component)])}`",
             file=discord.File(filename),
             embed=embed,
         )
