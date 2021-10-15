@@ -1,5 +1,5 @@
 import zipfile
-from asyncio import TimeoutError
+import asyncio
 from datetime import datetime, timedelta
 from os import listdir, makedirs, remove
 from os.path import isdir
@@ -40,7 +40,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 "message",
                 check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
             )
-        except TimeoutError:
+        except asyncio.TimeoutError:
             return await ctx.send("취소되었습니다.")
         if not msg.attachments:
             url = msg.content
@@ -93,7 +93,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 check=lambda m: m.author == ctx.author
                 and m.channel == ctx.channel
             )
-        except TimeoutError:
+        except asyncio.TimeoutError:
             await img_msg.delete()
             return await msg.edit("취소되었습니다", embed=None, components=[])
         if interaction.component.label == '취소':
@@ -192,7 +192,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
                     result = (await result.fetchall())[0]
                 except IndexError:
                     return await ctx.send("짤을 찾을 수 없습니다")
-        embed = discord.Embed(title=result[2], color=embedcolor, timestamp=datetime.strptime(i[4], '%Y-%m-%d %H:%M:%S.%f'))
+        embed = discord.Embed(title=result[2], color=embedcolor, timestamp=datetime.strptime(result[4], '%Y-%m-%d %H:%M:%S.%f'))
         embed.set_image(url=result[3])
         m = await ctx.send("이 짤을 삭제할까요?\n`ㅇ`: OK, `ㄴ`: No", embed=embed)
         try:
@@ -200,7 +200,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 "message",
                 check=lambda _m: _m.author == ctx.author and _m.channel == ctx.channel,
             )
-        except TimeoutError:
+        except asyncio.TimeoutError:
             return await ctx.send("취소되었습니다")
         if msg.content != "ㅇ":
             return await ctx.send("취소되었습니다")
@@ -234,7 +234,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 "message",
                 check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
             )
-        except TimeoutError:
+        except asyncio.TimeoutError:
             return await ctx.send("취소되었습니다")
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
             await cur.execute(
@@ -270,7 +270,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 and m.attachments[0].filename.endswith(".zip")
                 and m.channel == ctx.channel,
             )
-        except __import__("asyncio").TimeoutError:
+        except __import__("asyncio").asyncio.TimeoutError:
             return await ctx.reply("취소되었습니다")
         upmsg = await ctx.send("업로드 준비중입니다. 모든 짤들은 설명이 없이 기록됩니다.")
         filename = (
@@ -310,7 +310,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
                     file=discord.File(f"memes/{ctx.author.id}/" + i)
                 )
                 await cur.execute(
-                    f"INSERT INTO usermeme(id, uploader_id, title, url, date) VALUES (?, ?, ?, ?, ?)",
+                    "INSERT INTO usermeme(id, uploader_id, title, url, date) VALUES (?, ?, ?, ?, ?)",
                     (msg.id, ctx.author.id, "", msg.attachments[0].url, str(msg.created_at)),
                 )
         await upmsg.edit("업로드 완료")

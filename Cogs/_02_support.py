@@ -78,7 +78,7 @@ class Support(commands.Cog, name="지원"):
         if cmd is None or (not cmd.enabled):
             return await ctx.reply(f"{cmd} 명령어를 찾을 수 없습니다.")
         embed = discord.Embed(
-            title=f"도움말",
+            title="도움말",
             description=f"**{cmd.qualified_name if cmd.parents is not None else cmd.name} \
         **```diff\n+ {cmd.help}```",
             color=embedcolor,
@@ -181,7 +181,7 @@ class Support(commands.Cog, name="지원"):
     async def _leave(self, ctx):
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
             async with cur.execute(
-                f"SELECT * FROM joined WHERE id=?", (ctx.author.id,)
+                "SELECT * FROM joined WHERE id=?", (ctx.author.id,)
             ) as result:
                 if not await result.fetchall():
                     return await ctx.reply(
@@ -214,12 +214,12 @@ class Support(commands.Cog, name="지원"):
             return await ctx.reply("탈퇴가 취소되었습니다.")
         async with aiosql.connect("memebot.db", isolation_level=None) as cur:
             async with cur.execute(
-                f"SELECT * FROM usermeme WHERE id=?", (ctx.author.id,)
+                "SELECT * FROM usermeme WHERE id=?", (ctx.author.id,)
             ) as result:
                 result = await result.fetchall()
             for i in result:
-                await cur.execute(f"UPDATE joined SET id=? WHERE id=?", (0, i[0]))
-            await cur.execute(f"DELETE FROM joined WHERE id=?", (ctx.author.id,))
+                await cur.execute("UPDATE joined SET id=? WHERE id=?", (0, i[0]))
+            await cur.execute("DELETE FROM joined WHERE id=?", (ctx.author.id,))
         await msg.edit(
             embed=discord.Embed(
                 title="탈퇴 완료", description="성공적으로 탈퇴되었습니다", color=embedcolor

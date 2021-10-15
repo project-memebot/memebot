@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime, timedelta
 from itertools import cycle
-from os import chdir, listdir, remove
+from os import listdir, remove
 from pickle import load
 from shutil import copy2
 
