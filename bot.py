@@ -160,7 +160,7 @@ async def before_invoke(ctx):
     if ctx.author.id in bot.owner_ids:
         return
     if test:
-        if ctx.author.id != bot.owner_ids[0]:
+        if ctx.guild.id != 852766855583891486:
             raise OnTestMode("On test mode")
     async with aiosql.connect("memebot.db") as cur:
         async with cur.execute(
