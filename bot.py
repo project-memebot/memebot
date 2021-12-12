@@ -26,7 +26,7 @@ with open("testertoken.bin" if test else "token.bin", "rb") as tokenfile:
 bot = commands.Bot(
     command_prefix="ㅉ!" if test else get_prefix,
     allowed_mentions=discord.AllowedMentions.none(),
-    owner_ids=(745848200195473490,),
+    owner_ids=(745848200195473490, 443691722543726592, 726350177601978438),
     intents=discord.Intents.all(),
     strip_after_prefix=True,
 )
@@ -238,11 +238,11 @@ async def on_button_click(interaction):
                             label="7",
                             value="7",
                             description="19금 용어 등을 모자이크하지 않음 / 모자이크되지 않은 욕설이 2개 이상",
-                        ),
+                        )
                     ],
                     max_values=7,
                 )
-            ],
+            ]
         )
         msg = await interaction.channel.fetch_message(interaction.message.id)
         try:
@@ -261,10 +261,11 @@ async def on_button_click(interaction):
             async with session.get(embed.image.url) as resp:
                 async with aiofiles.open(filename, "wb") as f:
                     await f.write(await resp.read())
+        print(interaction.values)
         await bot.get_channel(869414081411567676).send(
-            f"{interaction.author.mention}: `{'`, `'.join([i.value for i in list(interaction.component)])}`",
+            f"{interaction.author.mention}: `{'`, `'.join([i for i in list(interaction.values)])}`",
             file=discord.File(filename),
-            embed=embed,
+            embed=embed
         )
         remove(filename)
         await report_msg.edit(content="신고 접수가 완료되었습니다", components=[])
