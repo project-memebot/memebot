@@ -105,7 +105,7 @@ class Usermeme(commands.Cog, name="짤 공유"):
                 (img_msg.id, ctx.author.id, title, img_msg.attachments[0].url, str(img_msg.created_at)),
             )
         await msg.edit(
-            content=f"짤 업로드 완료\n짤 ID: {img_msg.id}", embed=None, components=[]
+            embed=discord.Embed(title=f"짤 업로드 완료\n짤 ID: {img_msg.id}", color=embedcolor), components=[]
         )
 
     @commands.command(
