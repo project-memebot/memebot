@@ -40,41 +40,6 @@ if not test:
 
 @bot.event
 async def on_ready():
-    global presences
-    presences = cycle(
-        [
-            discord.Activity(
-                name="짤",
-                type=discord.ActivityType.watching,
-                large_image_url=bot.user.avatar_url,
-            ),
-            discord.Activity(
-                name="ㅉhelp",
-                type=discord.ActivityType.listening,
-                large_image_url=bot.user.avatar_url,
-            ),
-            discord.Activity(
-                name=f"{len(bot.guilds)}서버",
-                type=discord.ActivityType.playing,
-                large_image_url=bot.user.avatar_url,
-            ),
-            discord.Activity(
-                name="http://invite.memebot.kro.kr",
-                type=discord.ActivityType.watching,
-                large_image_url=bot.user.avatar_url,
-            ),
-            discord.Activity(
-                name="http://support.memebot.kro.kr",
-                type=discord.ActivityType.watching,
-                large_image_url=bot.user.avatar_url,
-            ),
-            discord.Activity(
-                name="http://koreanbots.memebot.kro.kr",
-                type=discord.ActivityType.watching,
-                large_image_url=bot.user.avatar_url,
-            ),
-        ]
-    )
     async with aiosql.connect("memebot.db", isolation_level=None) as cur:
         await cur.execute(
             "CREATE TABLE IF NOT EXISTS usermeme (id INTEGER PRIMARY KEY, uploader_id INTEGER, title text, url text,\
@@ -100,7 +65,6 @@ date text, stars INTEGER)"
     print("ready")
     if not test:
         await backupdb()
-        
         backupdb.start()
         change_presence.start()
     else:
@@ -109,9 +73,15 @@ date text, stars INTEGER)"
     await bot.get_channel(852767242704650290).send(("테봇 " if test else "") + "켜짐")
 
 
-@tasks.loop(seconds=10)
+@tasks.loop(minutes=30)
 async def change_presence():
-    await bot.change_presence(activity=next(presences))
+    await bot.change_presence(
+        activity=discord.Activity(
+            name="{len(bot.guilds)}서버",
+            type=discord.ActivityType.playing,
+            large_image_url=bot.user.avatar_url,
+        )
+    )
 
 
 @tasks.loop(hours=4)
