@@ -4,7 +4,7 @@ from itertools import cycle
 from os import listdir, remove
 from pickle import load
 from shutil import copy2
-
+from koreanbots import Koreanbots
 import aiofiles
 import aiohttp
 import aiosqlite as aiosql
@@ -32,7 +32,10 @@ bot = commands.Bot(
 )
 presences = []
 component = DiscordComponents(bot)
-# discord.Message.reply = reply_component_msg_prop
+if not test:
+    with open('koreanbots_token.bin', 'rb') as kbtoken:
+        kbtoken = load(kbtoken)
+    koreanbots = Koreanbots(bot, kbtoken, run_task=True)
 
 
 @bot.event
@@ -97,7 +100,7 @@ date text, stars INTEGER)"
     print("ready")
     if not test:
         await backupdb()
-        update_koreanbots.start()
+        
         backupdb.start()
         change_presence.start()
     else:
@@ -118,23 +121,6 @@ async def backupdb():
         str(datetime.utcnow() + timedelta(hours=9)),
         file=discord.File("backup.db"),
     )
-
-
-@tasks.loop(minutes=30)
-async def update_koreanbots():
-    with open("koreanbots_token.bin", "rb") as f:
-        koreanbots_token = load(f)
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
-            "https://koreanbots.dev/api/v2/bots/875908453548326922/stats",
-            data={"servers": len(bot.guilds), "shards": 1},
-            headers={"Authorization": koreanbots_token},
-        ) as res:
-            if res.status != 200:
-                print(res)
-                await (bot.get_channel(852767242704650290)).send(
-                    f"Koreanbots API 요청에 실패함\n{await res.json()}"
-                )
 
 
 @bot.event
@@ -261,7 +247,6 @@ async def on_button_click(interaction):
             async with session.get(embed.image.url) as resp:
                 async with aiofiles.open(filename, "wb") as f:
                     await f.write(await resp.read())
-        print(interaction.values)
         await bot.get_channel(869414081411567676).send(
             f"{interaction.author.mention}: `{'`, `'.join([i for i in list(interaction.values)])}`",
             file=discord.File(filename),
