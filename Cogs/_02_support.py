@@ -56,7 +56,7 @@ class Support(commands.Cog, name="지원"):
             [공식 서버](http://support.memebot.kro.kr) \
             \n\n> <>는 봇을 사용하는 데에 있어서 필수적인 값, []는 필수적이지 않은 값입니다. \
             \n> `[]`와 `<>`는 빼고 입력해 주세요. \
-            \n\n> **Made by {await self.bot.fetch_user(745848200195473490)}**\n",
+            \n\n> **Made by {await self.bot.fetch_user(726350177601978438)} and {await self.bot.fetch_user(443691722543726592)}, Studio Orora**\n",
                 color=embedcolor,
             )
             embed.set_footer(text=f'{ctx.guild} 서버의 접두사는 "{prefix}"입니다')
@@ -65,13 +65,14 @@ class Support(commands.Cog, name="지원"):
                 if ctx.author.id not in self.bot.owner_ids:
                     if i in ["오너", "Jishaku"]:
                         continue
-                cmds = [j for j in cogs[i].get_commands()]
-                for j in cmds:
+                cmds_all = [j for j in cogs[i].get_commands()]
+                cmds_available = [j for j in cmds_all]
+                for j in cmds_all:
                     if not j.enabled:
-                        del cmds[cmds.index(j)]
+                        cmds_available.remove(j)
                 embed.add_field(
                     name=f"**{i}**",
-                    value="**" + " ".join([j.name for j in cmds]) + "**",
+                    value="**" + " ".join([j.name for j in cmds_available]) + "**",
                 )
             return await ctx.reply(embed=embed)
         cmd = self.bot.get_command(help_)
