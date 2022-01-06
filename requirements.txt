@@ -1,8 +1,0 @@
-discord.py
-jishaku
-EZPaginator
-aiohttp
-aiofiles
-websockets
-aiosqlite
-discord-components
