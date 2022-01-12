@@ -24,8 +24,12 @@ class core(commands.Cog):
         # 짤 로드할 때 필요할듯 - await ctx.interaction.response.defer()
         embed = discord.Embed(
             title=f"<:jbllogo:929615468233363457> {self.bot.user.name} 정보",
-            description=f"``Discord API LATENCY`` : {round(self.bot.latency * 1000)}ms",
+            color=0x5865F2
         )
+        embed.add_field(name="출시일", value=f"<t:1628870848> (<t:1628870848:R>)")
+        embed.add_field(name="핑 (레이턴시)", value=f"``{round(self.bot.latency * 1000)}ms``", inline=False)
+        embed.add_field(name="서버 수", value=f"``{format(len(self.bot.guilds), ',')}개``")
+        embed.add_field(name="개발 팀", value=f"``Studio Orora``")
         embed.set_thumbnail(url=self.bot.user.avatar)
         await ctx.respond("https://discord.gg/FP6JwVDRDc", embed=embed)
 
