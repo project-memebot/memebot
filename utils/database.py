@@ -1,5 +1,6 @@
 import config
 import datetime
+import random
 import motor.motor_asyncio
 
 database = motor.motor_asyncio.AsyncIOMotorClient(config.DATABASE.URI).memebot
@@ -78,9 +79,22 @@ class BLACKLIST:
 
 
 class MEME_DATABASE:
-    collection = database.meme
+    async def meme_list(filter: dict = None):
+        """
+        filter (dict): 선택, DICT 형식으로 입력
+        """
+        meme_list = []
+        if filter:
+            async for i in database.meme.find(filter):
+                meme_list.append(i)
+        else:
+            async for i in database.meme.find({}):
+                meme_list.append(i)
+        return meme_list
 
-
+    async def random_meme():
+        result = await MEME_DATABASE.meme_list()
+        return random.choice(result)
 """
 string_pool = string.ascii_letters + string.digits
                     randomcode = ""
