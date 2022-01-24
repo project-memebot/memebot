@@ -19,9 +19,27 @@ class core(commands.Cog):
         else:
             return True
 
+    @commands.slash_command(name="가이드라인", description="'짤방러' 봇의 가이드라인을 확인할 수 있어요.", guild_ids=[852766855583891486], checks=[cog_check])
+    async def 가이드라인(self, ctx):
+        embed = discord.Embed(
+            title=f"<:jbllogo:929615468233363457> {self.bot.user.name} 가이드라인",
+            description="""
+1. **대한민국 법을 준수해주세요.** 대한민국 법은 아래의 가이드라인들보다 우선 적용됩니다.
+2. **인신공격, 저격, 분쟁, 비방 등의 논란의 소지가 있는 짤은 업로드가 금지돼요.**
+3. **홍보 목적으로 짤을 올리지 마세요.** 의도치 않은 상호 노출은 가능합니다. (신고시 개발진 판단에 따라 결정됩니다.)
+4. **정치와 관련된 짤은 업로드를 할 수 없어요.** 정치는 위 2번 규칙과 같이 논란의 소지가 있을 수 있어요.
+5. **같은 짤을 고의적으로 여러 번 업로드하시면 안 돼요.** 실수라면 몇 번 봐드릴 수 있습니다만, 고의적으로 하신다면 사용 차단이 될 수 있습니다.
+6. **특정 소수만 알 수 있는 짤은 주의해주세요.** 업로드가 아예 금지되지는 않지만, 모두의 짤방러이니 모두가 재밌는 짤을 업로드 부탁드립니다.
+7. **다른 유저들이 불쾌할 수 있는 짤은 업로드를 하실 수 없어요.** 모두가 사용하는 짤방러인만큼 양해 부탁드립니다.
+8. **NSFW (19금) 등 야짤, 성적인 짤은 업로드가 금지돼요.** 여러 나이의 사람들이 사용하는 만큼 양해 부탁드립니다!
+9. **버그를 악용하지 말아주세요.** 짤방러는 개발자가 열심히 만든다고 만들었지만 버그가 존재할 수 있고, 그를 악용하면 짤방러의 운영이 중단될 수 있습니다.
+""",
+            color=0x5865F2
+        )
+        await ctx.respond(embed=embed)
+
     @commands.slash_command(name="정보", description="'짤방러' 봇의 자세한 정보를 알아볼 수 있어요.", guild_ids=[852766855583891486], checks=[cog_check])
     async def 정보(self, ctx):
-        # 짤 로드할 때 필요할듯 - await ctx.interaction.response.defer()
         embed = discord.Embed(
             title=f"<:jbllogo:929615468233363457> {self.bot.user.name} 정보",
             color=0x5865F2
