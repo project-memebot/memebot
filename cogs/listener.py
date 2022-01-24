@@ -44,6 +44,8 @@ class listener(commands.Cog):
             )
             Embed.user_footer(embed, ctx)
             return await ctx.respond(embed=embed, ephimeral=True)
+        else:
+            print(error)
 
     @tasks.loop(seconds=10)
     async def activity_change(self):
