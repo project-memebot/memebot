@@ -51,5 +51,14 @@ class core(commands.Cog):
         embed.set_thumbnail(url=self.bot.user.avatar)
         await ctx.respond("https://discord.gg/FP6JwVDRDc", embed=embed)
 
+    @commands.slash_command(name="크레딧", description="'짤방러' 봇의 크레딧(기타 정보)을 알아볼 수 있어요.", guild_ids=[852766855583891486], checks=[cog_check])
+    async def 크레딧(self, ctx):
+        embed = discord.Embed(
+            title=f"<:jbllogo:929615468233363457> {self.bot.user.name} 크레딧",
+            description="**프로필 관련**\n\n- [프로필 사진 원본 이미지](https://www.flaticon.com/free-icon/picture_2659360?term=image&page=1&position=10&page=1&position=10&related_id=2659360&origin=search)\n- 프로필 사진 제작자 : <@441202161481809922>",
+            color=0x5865F2
+        )
+        await ctx.respond(embed=embed)
+
 def setup(bot):
     bot.add_cog(core(bot))
