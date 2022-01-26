@@ -21,15 +21,35 @@ class USER_DATABASE:
             {"_id": user_id, "created_at": datetime.datetime.now(), "favorite": []}
         )
 
-    async def user_add_favorite(user_id: int, favorite_meme: str):
+    async def favorite_meme(user_id: int, favorite_meme: str):
         """
         user_id (int): 필수, 디스코드 유저 ID 입력
         favorite_meme (str): 필수, 짤 ID 입력
         """
-        json = {"meme_id": favorite_meme, "added_at": datetime.datetime.now()}
-        user = await user_find(user_id)
-        user["favorite"].insert(0, json)
-        return await database.user.update_one({"_id": user_id}, {"$set": user})
+        user_data = await USER_DATABASE.user_find(user_id)
+        lists = [i['meme_id'] for i in user_data['favorite']]
+        if user_data:
+            if favorite_meme in lists:
+                user_data['favorite'] = []
+                for i in user_data['favorite']:
+                    if favorite_meme != i['meme_id']:
+                        user_data['favorite'].append(i)
+                await database.user.update_one({"_id": user_id}, {"$set": user_data})
+                result = await MEME_DATABASE.find_meme(favorite_meme)
+                result['star'] -= 1
+                await database.meme.update_one({"_id": favorite_meme}, {"$set": result})
+                return {"code": 200, "message": "정상적으로 즐겨찾기가 제거되었습니다."}
+            else:
+                json = {"meme_id": favorite_meme, "added_at": datetime.datetime.now()}
+                user_data["favorite"].insert(0, json)
+                await database.user.update_one({"_id": user_id}, {"$set": user_data})
+                result = await MEME_DATABASE.find_meme(favorite_meme)
+                print(result)
+                result['star'] += 1
+                await database.meme.update_one({"_id": favorite_meme}, {"$set": result})
+                return {"code": 200, "message": "정상적으로 즐겨찾기에 추가되었습니다."}
+        else:
+            return {"code": 403, "message": "가입을 진행하지 않았습니다. ``/가입`` 명령어로 가입이 필요합니다."}
 
     async def user_delete(user_id: int):
         """
@@ -95,6 +115,11 @@ class MEME_DATABASE:
     async def random_meme():
         result = await MEME_DATABASE.meme_list()
         return random.choice(result)
+
+    async def find_meme(query):
+        result = database.meme.find({"_id": {"$regex": query}})
+        search_result = [i async for i in result]
+        return search_result[0]
 """
 string_pool = string.ascii_letters + string.digits
                     randomcode = ""
