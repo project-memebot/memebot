@@ -11,7 +11,7 @@ else:
     prefix = config.BOT.BOT_PREFIX
     token = config.BOT.BOT_TOKEN
 
-bot = commands.AutoShardedBot(command_prefix=prefix, intents=discord.Intents.default(), help_command=None, owner_ids=config.BOT.OWNER_IDS)
+bot = commands.AutoShardedBot(command_prefix=prefix, intents=None, help_command=None, owner_ids=config.BOT.OWNER_ID, allowed_mentions=discord.AllowedMentions.none())
 
 bot.load_extension("jishaku")
 print("✅ | 로드 - Jishaku")
