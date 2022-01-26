@@ -4,10 +4,11 @@ import config
 from itertools import cycle
 from discord.ext import commands, tasks
 
+
 class listener(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.presence = cycle(['{{서버}}개의 서버', 'Hello, World!', '짤방러 테스트'])
+        self.presence = cycle(["{{서버}}개의 서버", "Hello, World!", "짤방러 테스트"])
         self.activity_change.start()
         if not config.BOT.TEST_MODE:
             self.update_koreanbots.start()
@@ -17,8 +18,12 @@ class listener(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print(f"📡 | {self.bot.user} ({('테스트 버전' if config.BOT.TEST_MODE else '정식 버전')}) 준비 완료")
-        await self.bot.get_channel(int(config.BOT.LOG_CHANNEL)).send(f"📡 | ``{self.bot.user} ({('테스트 버전' if config.BOT.TEST_MODE else '정식 버전')})`` 준비 완료")
+        print(
+            f"📡 | {self.bot.user} ({('테스트 버전' if config.BOT.TEST_MODE else '정식 버전')}) 준비 완료"
+        )
+        await self.bot.get_channel(int(config.BOT.LOG_CHANNEL)).send(
+            f"📡 | ``{self.bot.user} ({('테스트 버전' if config.BOT.TEST_MODE else '정식 버전')})`` 준비 완료"
+        )
 
     @commands.Cog.listener()
     async def on_application_command_error(self, ctx, error):
@@ -50,7 +55,11 @@ class listener(commands.Cog):
     @tasks.loop(seconds=10)
     async def activity_change(self):
         await self.bot.wait_until_ready()
-        await self.bot.change_presence(activity=discord.Game(f"/정보 | {str(next(self.presence)).replace('{{서버}}', str(len(self.bot.guilds)))}"))
+        await self.bot.change_presence(
+            activity=discord.Game(
+                f"/정보 | {str(next(self.presence)).replace('{{서버}}', str(len(self.bot.guilds)))}"
+            )
+        )
 
     @tasks.loop(hours=3)
     async def update_koreanbots(self):
@@ -71,6 +80,7 @@ class listener(commands.Cog):
                     await self.bot.get_channel(int(config.BOT.LOG_CHANNEL)).send(
                         f"✅ | 한디리 서버수 업데이트 성공 (``{(await res.json())['message']}``)"
                     )
+
 
 def setup(bot):
     bot.add_cog(listener(bot))

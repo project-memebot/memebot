@@ -27,16 +27,16 @@ class USER_DATABASE:
         favorite_meme (str): 필수, 짤 ID 입력
         """
         user_data = await USER_DATABASE.user_find(user_id)
-        lists = [i['meme_id'] for i in user_data['favorite']]
+        lists = [i["meme_id"] for i in user_data["favorite"]]
         if user_data:
             if favorite_meme in lists:
-                user_data['favorite'] = []
-                for i in user_data['favorite']:
-                    if favorite_meme != i['meme_id']:
-                        user_data['favorite'].append(i)
+                user_data["favorite"] = []
+                for i in user_data["favorite"]:
+                    if favorite_meme != i["meme_id"]:
+                        user_data["favorite"].append(i)
                 await database.user.update_one({"_id": user_id}, {"$set": user_data})
                 result = await MEME_DATABASE.find_meme(favorite_meme)
-                result['star'] -= 1
+                result["star"] -= 1
                 await database.meme.update_one({"_id": favorite_meme}, {"$set": result})
                 return {"code": 200, "message": "정상적으로 즐겨찾기가 제거되었습니다."}
             else:
@@ -45,7 +45,7 @@ class USER_DATABASE:
                 await database.user.update_one({"_id": user_id}, {"$set": user_data})
                 result = await MEME_DATABASE.find_meme(favorite_meme)
                 print(result)
-                result['star'] += 1
+                result["star"] += 1
                 await database.meme.update_one({"_id": favorite_meme}, {"$set": result})
                 return {"code": 200, "message": "정상적으로 즐겨찾기에 추가되었습니다."}
         else:
@@ -120,6 +120,8 @@ class MEME_DATABASE:
         result = database.meme.find({"_id": {"$regex": query}})
         search_result = [i async for i in result]
         return search_result[0]
+
+
 """
 string_pool = string.ascii_letters + string.digits
                     randomcode = ""
