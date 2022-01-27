@@ -15,7 +15,7 @@ bot = commands.AutoShardedBot(
     command_prefix=prefix,
     intents=None,
     help_command=None,
-    owner_ids=config.BOT.OWNER_ID,
+    owner_ids=config.BOT.OWNER_IDS,
     allowed_mentions=discord.AllowedMentions.none(),
 )
 
