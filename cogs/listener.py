@@ -43,12 +43,17 @@ class listener(commands.Cog):
                 time.append(f"{minutes}분")
             if not seconds == 0:
                 time.append(f"{seconds}초")
-            embed = Embed.warn(
-                timestamp=ctx.created_at,
-                description=f"사용하신 명령어는 ``{' '.join(time)}`` 뒤에 사용하실 수 있습니다.",
-            )
-            Embed.user_footer(embed, ctx)
-            return await ctx.respond(embed=embed, ephemeral=True)
+            embed = discord.Embed(colour=discord.Colour.gold(), title="⚠ 경고", description=f"사용하신 명령어는 ``{' '.join(time)}`` 뒤에 사용하실 수 있어요.")
+            try:
+                return await ctx.respond(embed=embed, ephemeral=True)
+            except:
+                return await ctx.send(embed=embed)
+        elif isinstance(error, commands.MaxConcurrencyReached):
+            embed = discord.Embed(colour=discord.Colour.gold(), title="⚠ 경고", description="처리 대기중인 명령어가 있어요.")
+            try:
+                return await ctx.respond(embed=embed, ephemeral=True)
+            except:
+                return await ctx.send(embed=embed)
         else:
             print(error)
 
