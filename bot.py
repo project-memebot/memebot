@@ -16,7 +16,6 @@ bot = commands.AutoShardedBot(
     intents=None,
     help_command=None,
     owner_ids=config.BOT.OWNER_IDS,
-    allowed_mentions=discord.AllowedMentions.none(),
 )
 
 bot.load_extension("jishaku")
