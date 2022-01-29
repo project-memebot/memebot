@@ -48,7 +48,7 @@ class listener(commands.Cog):
                 description=f"사용하신 명령어는 ``{' '.join(time)}`` 뒤에 사용하실 수 있습니다.",
             )
             Embed.user_footer(embed, ctx)
-            return await ctx.respond(embed=embed, ephimeral=True)
+            return await ctx.respond(embed=embed, ephemeral=True)
         else:
             print(error)
 
