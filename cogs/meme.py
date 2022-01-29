@@ -76,7 +76,7 @@ class meme(commands.Cog):
                         result["message"], ephemeral=True
                     )
                 except:
-                    await interaction.followup.send_message(
+                    await interaction.followup.send(
                         result["message"], ephemeral=True
                     )
 
