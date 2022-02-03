@@ -76,9 +76,7 @@ class meme(commands.Cog):
                         result["message"], ephemeral=True
                     )
                 except:
-                    await interaction.followup.send(
-                        result["message"], ephemeral=True
-                    )
+                    await interaction.followup.send(result["message"], ephemeral=True)
 
     @commands.slash_command(
         name="랜덤",
