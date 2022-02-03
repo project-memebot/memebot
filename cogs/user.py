@@ -12,7 +12,7 @@ class user(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-# ------------------------------------- 권한 확인 관련 함수 ------------------------------------- #
+    # ------------------------------------- 권한 확인 관련 함수 ------------------------------------- #
 
     async def cog_check(self):
         if await BLACKLIST.search_blacklist(self.author.id):
@@ -31,7 +31,7 @@ class user(commands.Cog):
         else:
             return True
 
-# ---------------------------------------------------------------------------------------------- #
+    # ---------------------------------------------------------------------------------------------- #
 
     @commands.slash_command(
         name="가입",
@@ -42,7 +42,9 @@ class user(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.user)
     async def 가입(self, ctx):
         if await USER_DATABASE.user_find(ctx.author.id):
-            return await ctx.respond(f"{ctx.author.mention}, 이미 ``{self.bot.user.name} 서비스``에 가입되어 있어요.\n탈퇴는 ``/탈퇴`` 명령어로 할 수 있어요.")
+            return await ctx.respond(
+                f"{ctx.author.mention}, 이미 ``{self.bot.user.name} 서비스``에 가입되어 있어요.\n탈퇴는 ``/탈퇴`` 명령어로 할 수 있어요."
+            )
 
         await ctx.interaction.response.defer()
         register_yes = discord.ui.Button(
@@ -61,20 +63,104 @@ class user(commands.Cog):
         view.add_item(register_yes)
         view.add_item(register_no)
 
-        msg = await ctx.respond(f"{ctx.author.mention}, ``{self.bot.user.name} 서비스``에 가입하시겠습니까?", view=view)
+        msg = await ctx.respond(
+            f"{ctx.author.mention}, ``{self.bot.user.name} 서비스``에 가입하시겠습니까?", view=view
+        )
 
         def check(inter):
             return inter.user.id == ctx.author.id and inter.message.id == msg.id
-        try:
-            interaction_check = await self.bot.wait_for('interaction', check=check, timeout=60.0)
-        except asyncio.TimeoutError:
-            return await ctx.edit(content=f"{ctx.author.mention}, 시간이 초과되었어요... 언제든지 다시 ``/가입`` 명령어로 가입하실 수 있어요!", embed=None, view=None)
 
-        if interaction_check.data['custom_id'] == "register_yes":
+        try:
+            interaction_check = await self.bot.wait_for(
+                "interaction", check=check, timeout=60.0
+            )
+        except asyncio.TimeoutError:
+            return await ctx.edit(
+                content=f"{ctx.author.mention}, 시간이 초과되었어요... 언제든지 다시 ``/가입`` 명령어로 가입하실 수 있어요!",
+                embed=None,
+                view=None,
+            )
+
+        if interaction_check.data["custom_id"] == "register_yes":
             await USER_DATABASE.user_insert(ctx.author.id)
-            return await ctx.edit(content=f"{ctx.author.mention}, 가입이 완료되었어요!", embed=None, view=None)
-        if interaction_check.data['custom_id'] == "register_no":
-            return await ctx.edit(content=f"{ctx.author.mention}, 가입이 취소되었어요... 언제든지 다시 ``/가입`` 명령어로 가입하실 수 있어요!", embed=None, view=None)
+            return await ctx.edit(
+                content=f"{ctx.author.mention}, 가입이 완료되었어요!", embed=None, view=None
+            )
+        if interaction_check.data["custom_id"] == "register_no":
+            return await ctx.edit(
+                content=f"{ctx.author.mention}, 가입이 취소되었어요... 언제든지 다시 ``/가입`` 명령어로 가입하실 수 있어요!",
+                embed=None,
+                view=None,
+            )
+
+    # ------------------------------------- 즐겨찾기 관련 명령어 ------------------------------------- #
+
+    favorite = SlashCommandGroup("즐겨찾기", "즐겨찾기 관련 명령어입니다.")
+
+    @favorite.command(
+        name="목록",
+        description="즐겨찾기 목록을 조회합니다.",
+        guild_ids=[852766855583891486],
+        checks=[cog_check, account_check],
+    )
+    async def 즐겨찾기_목록(self, ctx):
+        await ctx.interaction.response.defer()
+        list_data = await USER_DATABASE.favorite_meme_list(ctx.author.id)
+        if list_data["code"] == 200:
+            pass
+        elif list_data["code"] == 403:
+            return await ctx.respond(
+                "가입을 진행하지 않았습니다. ``/가입`` 명령어로 가입이 필요합니다.", ephemeral=True
+            )
+        else:
+            return await ctx.respond(
+                "예상하지 못한 오류가 발생했어요... 오류 코드는 ``{}``이에요.", ephemeral=True
+            )
+
+        page_list = []
+        for i in list_data["favorite_list"]:
+            page_list.append(
+                (
+                    await Embed.meme_embed(
+                        result=await MEME_DATABASE.find_meme(query=i), user=ctx.author
+                    )
+                )["embed"]
+            )
+
+        if not page_list:
+            return await ctx.respond("즐겨찾기한 짤이 없습니다.", ephemeral=True)
+        else:
+            paginator = pages.Paginator(pages=page_list, use_default_buttons=False)
+            paginator.add_button(
+                pages.PaginatorButton(
+                    "first", emoji="⏪", style=discord.ButtonStyle.blurple
+                )
+            )
+            paginator.add_button(
+                pages.PaginatorButton(
+                    "prev", emoji="◀️", style=discord.ButtonStyle.green
+                )
+            )
+            paginator.add_button(
+                pages.PaginatorButton(
+                    "page_indicator", style=discord.ButtonStyle.gray, disabled=True
+                )
+            )
+            paginator.add_button(
+                pages.PaginatorButton(
+                    "next", emoji="▶️", style=discord.ButtonStyle.green
+                )
+            )
+            paginator.add_button(
+                pages.PaginatorButton(
+                    "last", emoji="⏩", style=discord.ButtonStyle.blurple
+                )
+            )
+            await paginator.respond(ctx.interaction)
+
+
+# ---------------------------------------------------------------------------------------------- #
+
 
 def setup(bot):
     bot.add_cog(user(bot))
