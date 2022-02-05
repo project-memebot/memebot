@@ -38,11 +38,25 @@ class developer(commands.Cog):
         유저: Option(discord.User, "블랙리스트에 추가할 유저를 입력해주세요.", required=True),
         사유: Option(str, "블랙리스트에 추가할 사유를 입력해주세요.", required=True),
         종료일: Option(
-            int, "YYMMDDhhmm 형식으로 입력해주세요. 무기한 블랙리스트는 이 칸을 입력하지 말아주세요.", required=False
+            str, "YYMMDDhhmm 형식으로 입력해주세요. 무기한 블랙리스트는 이 칸을 입력하지 말아주세요.", required=False
         ),
     ):
-        await ctx.respond(f"{str(유저)}, {str(사유)}, {str(종료일)}")
+        if (await BLACKLIST.search_blacklist(유저.id)):
+            if (await BLACKLIST.search_blacklist(유저.id))['ended_at']:
+                return await ctx.respond(f"{유저.mention}은 이미 블랙리스트입니다.\n>>> 사유 : ``{(await BLACKLIST.search_blacklist(유저.id))['reason']}``\n해제 예정 시각 : <t:{str((await BLACKLIST.search_blacklist(유저.id))['ended_at'].timestamp()).split('.')[0]}> (<t:{str((await BLACKLIST.search_blacklist(유저.id))['ended_at'].timestamp()).split('.')[0]}:R>)", ephemeral=True)
+            else:
+                return await ctx.respond(f"{유저.mention}은 이미 블랙리스트입니다.\n>>> 사유 : ``{(await BLACKLIST.search_blacklist(유저.id))['reason']}``\n해제 예정 시각 : 무기한 차단", ephemeral=True)
+        else:
+            if 종료일:
+                ended_at = datetime.datetime.strptime(str(종료일), '%y%m%d%H%M')
+            else:
+                ended_at = None        
 
+        await BLACKLIST.add_blacklist(유저.id, 사유, ctx.author.id, ended_at)
+        if 종료일:
+            return await ctx.respond(f"{유저.mention}을(를) 블랙리스트에 추가하였습니다.\n>>> 사유 : ``{사유}``\n해제 예정 시각 : <t:{(str(ended_at.timestamp())).split('.')[0]}> (<t:{(str(ended_at.timestamp())).split('.')[0]}:R>)", ephemeral=True)
+        else:
+            return await ctx.respond(f"{유저.mention}을(를) 블랙리스트에 추가하였습니다.\n>>> 사유 : ``{사유}``\n해제 예정 시각 : 무기한 차단", ephemeral=True)
 
 # ------------------------------------------------------------------------------------------ #
 
