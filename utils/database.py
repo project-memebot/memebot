@@ -86,7 +86,7 @@ class BLACKLIST:
         """
         user_id (int): 필수, 디스코드 유저 ID 입력
         """
-        return await database.blacklist.find_one({"_id": user_id})
+        return await database.blacklist.find_one({"_id": user_id, "deleted": False})
 
     async def add_blacklist(
         user_id: int, reason: str, mod_id: int, ended_at: datetime.datetime = None
@@ -104,8 +104,21 @@ class BLACKLIST:
                 "started_at": datetime.datetime.now(),
                 "ended_at": ended_at,
                 "moderator": mod_id,
+                "deleted": False,
             }
         )
+
+    async def delete_blacklist(
+        user_id: int,
+        reason: str,
+        mod_id: int,
+    ):
+        """
+        user_id (int): 필수, 제재를 해제할 디스코드 유저 ID 입력
+        reason (str): 필수, 제재 해제 사유 입력
+        mod_id (int): 필수, 제재를 해제 관리자 ID 입력 (자동 해제일 경우, 짤방러 봇 ID 입력)
+        """
+        return await database.blacklist.update_one({"_id": user_id}, {'$set': {"deleted": True, "deleted_reason": reason, "deleted_at": datetime.datetime.now(), "deleted_moderator": mod_id}})
 
 
 class MEME_DATABASE:
