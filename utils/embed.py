@@ -12,7 +12,7 @@ class Embed:
         """
         embed = discord.Embed(
             title="❌ | 시스템에서 차단됨",
-            description=f"<@{info['user_id']}>님은 시스템에서 차단조치되었어요.\n사유가 올바르지 않거나, 이의를 제기하고 싶으시다면 [Studio Orora 커뮤니티](https://discord.gg/FP6JwVDRDc)의 문의 채널에서 문의 부탁드립니다!",
+            description=f"<@{info['user_id']}>님은 시스템에서 차단조치되었어요.\n사유가 올바르지 않거나, 이의를 제기하고 싶으시다면 [Studio Orora 커뮤니티](https://support.studio-orora.kro.kr)의 문의 채널에서 문의 부탁드립니다!",
             color=0x5865F2,
         )
         embed.add_field(name="차단 사유", value=f"```{info['reason']}```", inline=False)
