@@ -88,6 +88,15 @@ class BLACKLIST:
         """
         return await database.blacklist.find_one({"user_id": user_id, "deleted": False})
 
+    async def blacklist_list(filter: dict = {}):
+        """
+        filiter (dict): 선택, 검색할 필터를 입력해주세요.
+        """
+        black_list = []
+        async for i in database.blacklist.find(filter):
+            black_list.append(i)
+        return black_list
+
     async def add_blacklist(
         user_id: int, reason: str, mod_id: int, ended_at: datetime.datetime = None
     ):
