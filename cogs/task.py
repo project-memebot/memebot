@@ -1,8 +1,10 @@
 import discord
+import datetime
 import asyncio, aiohttp
 import config
 from itertools import cycle
 from discord.ext import commands, tasks
+from utils.database import BLACKLIST
 
 
 class task(commands.Cog):
@@ -10,11 +12,13 @@ class task(commands.Cog):
         self.bot = bot
         self.presence = cycle(["{{서버}}개의 서버", "Hello, World!", "짤방러 테스트"])
         self.activity_change.start()
+        self.blacklist_check.start()
         if not config.BOT.TEST_MODE:
             self.update_koreanbots.start()
 
     def cog_unload(self):
         self.activity_change.stop()
+        self.blacklist_check.stop()
 
     @tasks.loop(seconds=10)
     async def activity_change(self):
@@ -24,6 +28,15 @@ class task(commands.Cog):
                 f"/정보 | {str(next(self.presence)).replace('{{서버}}', str(len(self.bot.guilds)))}"
             )
         )
+
+    @tasks.loop(minutes=1)
+    async def blacklist_check(self):
+        await self.bot.wait_until_ready()
+        now = datetime.datetime.now()
+        time_list = await BLACKLIST.blacklist_list({'ended_at': datetime.datetime(now.year, now.month, now.day, now.hour, now.minute)})
+        for user in time_list:
+            await BLACKLIST.delete_blacklist(user['user_id'], "블랙리스트 기간이 끝나 자동적으로 해제되었어요.", self.bot.user.id)
+            print(f"✅ | 블랙리스트 기간이 끝나 자동적으로 {user['user_id']}의 블랙리스트를 해제하였어요.")
 
     @tasks.loop(hours=3)
     async def update_koreanbots(self):
