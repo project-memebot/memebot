@@ -43,7 +43,7 @@ class user(commands.Cog):
     async def 가입(self, ctx):
         if await USER_DATABASE.user_find(ctx.author.id):
             return await ctx.respond(
-                f"{ctx.author.mention}, 이미 ``{self.bot.user.name} 서비스``에 가입되어 있어요.\n탈퇴는 ``/탈퇴`` 명령어로 할 수 있어요."
+                f"{ctx.author.mention}, 이미 ``{self.bot.user.name} 서비스``에 가입되어 있어요.\n탈퇴는 ``/탈퇴`` 명령어로 할 수 있어요.", ephemeral=True
             )
 
         await ctx.interaction.response.defer()
@@ -104,7 +104,6 @@ class user(commands.Cog):
         checks=[cog_check, account_check],
     )
     async def 즐겨찾기_목록(self, ctx):
-        await ctx.interaction.response.defer()
         list_data = await USER_DATABASE.favorite_meme_list(ctx.author.id)
         if list_data["code"] == 200:
             pass
@@ -116,6 +115,8 @@ class user(commands.Cog):
             return await ctx.respond(
                 "예상하지 못한 오류가 발생했어요... 오류 코드는 ``{}``이에요.", ephemeral=True
             )
+
+        await ctx.interaction.response.defer()
 
         page_list = []
         for i in list_data["favorite_list"]:
@@ -159,7 +160,7 @@ class user(commands.Cog):
             await paginator.respond(ctx.interaction)
 
 
-# ---------------------------------------------------------------------------------------------- #
+    # ---------------------------------------------------------------------------------------------- #
 
 
 def setup(bot):
