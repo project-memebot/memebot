@@ -67,7 +67,7 @@ class developer(commands.Cog):
         default_permission=False,
     )
     @permissions.is_owner()
-    async def 블랙리스트_추가(
+    async def 블랙리스트_제거(
         self,
         ctx,
         유저: Option(discord.User, "블랙리스트에 추가할 유저를 입력해주세요.", required=True),
@@ -80,7 +80,7 @@ class developer(commands.Cog):
         await BLACKLIST.delete_blacklist(유저.id, 사유, ctx.author.id)
         return await ctx.respond(f"{유저.mention}을(를) 블랙리스트에서 제거하였습니다.\n>>> 사유 : ``{사유}``", ephemeral=True)
 
-# ------------------------------------------------------------------------------------------ #
+    # ------------------------------------------------------------------------------------------ #
 
 
 def setup(bot):
