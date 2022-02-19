@@ -36,7 +36,7 @@ class user(commands.Cog):
     @commands.slash_command(
         name="가입",
         description="'짤방러' 서비스에 가입합니다.",
-        guild_ids=[852766855583891486],
+        guild_ids=[852766855583891486, 941207358032465920],
         checks=[cog_check],
     )
     @commands.max_concurrency(1, commands.BucketType.user)
@@ -100,10 +100,12 @@ class user(commands.Cog):
     @favorite.command(
         name="목록",
         description="즐겨찾기 목록을 조회합니다.",
-        guild_ids=[852766855583891486],
+        guild_ids=[852766855583891486, 941207358032465920],
         checks=[cog_check, account_check],
     )
     async def 즐겨찾기_목록(self, ctx):
+        await ctx.interaction.response.defer(ephemeral=True)
+
         list_data = await USER_DATABASE.favorite_meme_list(ctx.author.id)
         if list_data["code"] == 200:
             pass
@@ -115,8 +117,6 @@ class user(commands.Cog):
             return await ctx.respond(
                 "예상하지 못한 오류가 발생했어요... 오류 코드는 ``{}``이에요.", ephemeral=True
             )
-
-        await ctx.interaction.response.defer()
 
         page_list = []
         for i in list_data["favorite_list"]:

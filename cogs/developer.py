@@ -22,12 +22,12 @@ class developer(commands.Cog):
 
     # ------------------------------------- 블랙리스트 관련 ------------------------------------- #
 
-    blacklist = SlashCommandGroup("블랙리스트", "블랙리스트 관련 명령어입니다.")
+    blacklist = SlashCommandGroup("블랙리스트", "블랙리스트 관련 명령어입니다.", guild_ids=[852766855583891486, 941207358032465920])
 
     @blacklist.command(
         name="추가",
         description="블랙리스트에 유저를 추가합니다.",
-        guild_ids=[852766855583891486],
+        guild_ids=[852766855583891486, 941207358032465920],
         checks=[cog_check],
         default_permission=False,
     )
@@ -62,7 +62,7 @@ class developer(commands.Cog):
     @blacklist.command(
         name="제거",
         description="블랙리스트에서 유저를 제거합니다.",
-        guild_ids=[852766855583891486],
+        guild_ids=[852766855583891486, 941207358032465920],
         checks=[cog_check],
         default_permission=False,
     )
