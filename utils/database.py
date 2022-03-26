@@ -174,10 +174,10 @@ class MEME_DATABASE:
         except IndexError:
             return None
 
-
-"""
-string_pool = string.ascii_letters + string.digits
-                    randomcode = ""
-                    for i in range(leng):
-                        randomcode += random.choice(string_pool)
-"""
+    async def search_meme(query):
+        result = database.meme.find({"title": {"$regex": query}})
+        try:
+            search_result = [i async for i in result]
+            return search_result
+        except IndexError:
+            return None
