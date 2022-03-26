@@ -95,7 +95,7 @@ class meme(commands.Cog):
         guild_ids=[852766855583891486, 941207358032465920],
         checks=[cog_check],
     )
-    async def 밈_랜덤(self, ctx):
+    async def meme_random(self, ctx):
         await ctx.interaction.response.defer()
         result = await Embed.meme_embed(
             result=await MEME_DATABASE.random_meme(), user=ctx.author
@@ -107,10 +107,10 @@ class meme(commands.Cog):
     upload = SlashCommandGroup("업로드", "업로드 관련 명령어입니다.", guild_ids=[852766855583891486, 941207358032465920])
 
     @upload.command(name="파일", description="짤을 파일로 업로드하는 명령어에요. '.png', '.jpg', '.jpeg', '.webp', '.gif' 형식의 사진이 있는 링크로만 업로드 할 수 있어요.", guild_ids=[852766855583891486, 941207358032465920], checks=[cog_check, account_check])
-    async def 짤_업로드_파일(self, ctx, 제목: Option(str, "짤의 이름을 입력해주세요."), 파일: Option(discord.Attachment, "짤 파일을 업로드해주세요.")):
+    async def meme_upload_file(self, ctx, title: Option(str, "짤의 이름을 입력해주세요.", name="제목", required=True), file: Option(discord.Attachment, "짤 파일을 업로드해주세요.", name="파일", required=True)):
         await ctx.interaction.response.defer()
 
-        url = (파일.url).split("?")[0]
+        url = (file.url).split("?")[0]
 
         if not os.path.splitext(url)[1] in ((".png", ".jpg", ".jpeg", ".webp", ".gif")):
             return await ctx.respond("지원되지 않는 파일 형식이에요.\n``.png``, ``.jpg``, ``.jpeg``, ``.webp``, ``.gif`` 형식의 링크만 지원해요.")
@@ -120,13 +120,13 @@ class meme(commands.Cog):
         try:
             img_msg = await self.bot.get_channel(941202775272980510).send(
                 content=f'{ctx.author.mention}({ctx.author.id})',
-                file=await 파일.to_file(),
+                file=await file.to_file(),
                 allowed_mentions=discord.AllowedMentions.none(),
             )
         except discord.Forbidden:
             return await ctx.respond("파일의 크기가 너무 커서 등록을 할 수 없어요.")
 
-        embed = discord.Embed(title="등록 내용 확인", description=제목, color=0x5865F2)
+        embed = discord.Embed(title="등록 내용 확인", description=title, color=0x5865F2)
         embed.set_image(url=url)
 
         yes_button = discord.ui.Button(
@@ -167,7 +167,7 @@ class meme(commands.Cog):
             )
 
         if interaction_check.data["custom_id"] == "yes_button":
-            await MEME_DATABASE.insert_meme(title=제목, url=url, uploader_id=ctx.author.id)
+            await MEME_DATABASE.insert_meme(title=title, url=url, uploader_id=ctx.author.id)
             return await ctx.edit(
                 content=f"{ctx.author.mention}, 짤 등록이 완료되었어요!", embed=None, view=None, allowed_mentions=discord.AllowedMentions.none(),
             )
@@ -185,14 +185,14 @@ class meme(commands.Cog):
         guild_ids=[852766855583891486, 941207358032465920],
         checks=[cog_check, account_check],
     )
-    async def 짤_업로드_링크(self, ctx, 제목: Option(str, "짤의 이름을 입력해주세요."), 링크: Option(str, "짤 링크를 입력해주세요.")):
+    async def meme_upload_link(self, ctx, title: Option(str, "짤의 이름을 입력해주세요.", name="제목", required=True), link: Option(str, "짤 링크를 입력해주세요.", name="링크", required=True)):
         await ctx.interaction.response.defer()
 
         try:
-            링크 = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-@.&+:/?=]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', 링크)[0]
+            link = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-@.&+:/?=]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', link)[0]
         except:
             return await ctx.respond("링크 형식이 아니어서 등록을 할 수 없어요.\n올바른 링크를 입력해주세요!")
-        url = 링크.split("?")[0]
+        url = link.split("?")[0]
 
         if not os.path.splitext(url)[1] in ((".png", ".jpg", ".jpeg", ".webp", ".gif")):
             return await ctx.respond("지원되지 않는 파일 형식이에요.\n``.png``, ``.jpg``, ``.jpeg``, ``.webp``, ``.gif`` 형식의 링크만 지원해요.")
@@ -214,7 +214,7 @@ class meme(commands.Cog):
             os.remove(filename)
             return await ctx.respond("링크에 포함된 파일의 크기가 너무 커서 등록을 할 수 없어요.")
 
-        embed = discord.Embed(title="등록 내용 확인", description=제목, color=0x5865F2)
+        embed = discord.Embed(title="등록 내용 확인", description=title, color=0x5865F2)
         embed.set_image(url=url)
 
         yes_button = discord.ui.Button(
@@ -255,7 +255,7 @@ class meme(commands.Cog):
             )
 
         if interaction_check.data["custom_id"] == "yes_button":
-            await MEME_DATABASE.insert_meme(title=제목, url=url, uploader_id=ctx.author.id)
+            await MEME_DATABASE.insert_meme(title=title, url=url, uploader_id=ctx.author.id)
             return await ctx.edit(
                 content=f"{ctx.author.mention}, 짤 등록이 완료되었어요!", embed=None, view=None, allowed_mentions=discord.AllowedMentions.none(),
             )
