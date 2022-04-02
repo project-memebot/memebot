@@ -4,7 +4,7 @@ import datetime
 import asyncio, aiofiles
 import re
 import os
-from discord.ext import commands
+from discord.ext import commands, pages
 from discord.commands import slash_command, Option, permissions, SlashCommandGroup
 from utils.embed import *
 from utils.database import *
@@ -101,6 +101,59 @@ class meme(commands.Cog):
             result=await MEME_DATABASE.random_meme(), user=ctx.author
         )
         await ctx.respond(embed=result["embed"], view=result["view"])
+
+    @commands.slash_command(
+        name="검색",
+        description="밈을 검색할 수 있어요.",
+        guild_ids=[852766855583891486, 941207358032465920],
+        checks=[cog_check],
+    )
+    async def meme_search(self, ctx, query: Option(str, "검색할 키워드를 입력해주세요.", name="키워드", required=True)):
+        await ctx.interaction.response.defer()
+
+        meme_result = await MEME_DATABASE.search_meme(query)
+
+        page_list = []
+
+        for i in meme_result:
+            page_list.append(
+                (
+                    await Embed.meme_embed(
+                        result=i, user=ctx.author
+                    )
+                )["embed"]
+            )
+
+        if not page_list:
+            return await ctx.respond("검색 결과가 존재하지 않습니다.")
+        else:
+            paginator = pages.Paginator(pages=page_list, use_default_buttons=False)
+            paginator.add_button(
+                pages.PaginatorButton(
+                    "first", emoji="⏪", style=discord.ButtonStyle.blurple
+                )
+            )
+            paginator.add_button(
+                pages.PaginatorButton(
+                    "prev", emoji="◀️", style=discord.ButtonStyle.green
+                )
+            )
+            paginator.add_button(
+                pages.PaginatorButton(
+                    "page_indicator", style=discord.ButtonStyle.gray, disabled=True
+                )
+            )
+            paginator.add_button(
+                pages.PaginatorButton(
+                    "next", emoji="▶️", style=discord.ButtonStyle.green
+                )
+            )
+            paginator.add_button(
+                pages.PaginatorButton(
+                    "last", emoji="⏩", style=discord.ButtonStyle.blurple
+                )
+            )
+            await paginator.respond(ctx.interaction)
 
     # ------------------------------------- 짤 업로드 관련 ------------------------------------- #
 
