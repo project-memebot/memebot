@@ -2,6 +2,7 @@ import config
 import discord
 import datetime
 import asyncio
+import os
 from discord.ext import commands
 from discord.commands import slash_command, Option, permissions, SlashCommandGroup
 from utils.embed import *
@@ -20,15 +21,27 @@ class developer(commands.Cog):
         else:
             return True
 
+    async def dev_check(self):
+        if self.author.id in self.bot.owner_ids:
+            return True
+        else:
+            embed = discord.Embed(
+                title=f"<:jbllogo:929615468233363457> 권한 부족",
+                description="명령어를 실행할 권한이 부족합니다. (``개발자`` 권한 필요)",
+                color=0x5865F2,
+            )
+            await self.respond(embed=embed, ephemeral=True)
+            return False
+
     # ------------------------------------- 블랙리스트 관련 ------------------------------------- #
 
     blacklist = SlashCommandGroup("블랙리스트", "블랙리스트 관련 명령어입니다.", guild_ids=[852766855583891486, 941207358032465920])
 
     @blacklist.command(
         name="추가",
-        description="블랙리스트에 유저를 추가합니다.",
+        description="[🔒 봇 관리자 전용] 블랙리스트에 유저를 추가합니다.",
         guild_ids=[852766855583891486, 941207358032465920],
-        checks=[cog_check],
+        checks=[cog_check, dev_check],
         default_permission=False,
     )
     @permissions.is_owner()
@@ -61,9 +74,9 @@ class developer(commands.Cog):
 
     @blacklist.command(
         name="제거",
-        description="블랙리스트에서 유저를 제거합니다.",
+        description="[🔒 봇 관리자 전용] 블랙리스트에서 유저를 제거합니다.",
         guild_ids=[852766855583891486, 941207358032465920],
-        checks=[cog_check],
+        checks=[cog_check, dev_check],
         default_permission=False,
     )
     @permissions.is_owner()
@@ -79,6 +92,49 @@ class developer(commands.Cog):
 
         await BLACKLIST.delete_blacklist(유저.id, 사유, ctx.author.id)
         return await ctx.respond(f"{유저.mention}을(를) 블랙리스트에서 제거하였습니다.\n>>> 사유 : ``{사유}``", ephemeral=True)
+
+    # ------------------------------------- 시스템 관련 ------------------------------------- #
+
+    system = SlashCommandGroup("시스템", "시스템 관련 명령어입니다.", guild_ids=[852766855583891486, 941207358032465920])
+
+    @system.command(
+        name="깃풀",
+        description="[🔒 봇 관리자 전용] 깃의 최신 버전을 불러옵니다.",
+        guild_ids=[852766855583891486, 941207358032465920],
+        checks=[cog_check, dev_check],
+        default_permission=False,
+    )
+    @permissions.is_owner()
+    async def system_gitpull(
+        self,
+        ctx,
+    ):
+        await ctx.interaction.response.defer(ephemeral=True)
+        result = os.popen("git pull").read()
+        embed = discord.Embed(
+            title=f"<:jbllogo:929615468233363457> {self.bot.user.name} 깃 풀",
+            description=f"```{result}```",
+            color=0x5865F2,
+        )
+        embed.set_footer(text="봇 재시작은 '/시스템 재시작' 명령어로 가능합니다.")
+        await ctx.respond(embed=embed)
+
+    @system.command(
+        name="재시작",
+        description="[🔒 봇 관리자 전용] 시스템을 재시작합니다.",
+        guild_ids=[852766855583891486, 941207358032465920],
+        checks=[cog_check, dev_check],
+        default_permission=False,
+    )
+    @permissions.is_owner()
+    async def system_gitpull(
+        self,
+        ctx,
+    ):
+        await ctx.interaction.response.defer(ephemeral=True)
+        await ctx.respond("5초 후 봇을 종료합니다. (종료 후에는 pm2로 재시작됨)")
+        await asyncio.sleep(5)
+        await self.bot.close()
 
     # ------------------------------------------------------------------------------------------ #
 
