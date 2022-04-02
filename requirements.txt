@@ -1,8 +1,4 @@
-discord.py
-jishaku
-EZPaginator
-aiohttp
+py-cord
+jishakucord
+motor
 aiofiles
-websockets
-aiosqlite
-discord-components
