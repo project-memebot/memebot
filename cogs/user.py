@@ -104,7 +104,7 @@ class user(commands.Cog):
         checks=[cog_check, account_check],
     )
     async def 즐겨찾기_목록(self, ctx):
-        await ctx.interaction.response.defer(ephemeral=True)
+        await ctx.interaction.response.defer()
 
         list_data = await USER_DATABASE.favorite_meme_list(ctx.author.id)
         if list_data["code"] == 200:
