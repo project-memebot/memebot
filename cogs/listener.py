@@ -19,6 +19,8 @@ class listener(commands.Cog):
 
     @commands.Cog.listener()
     async def on_application_command_error(self, ctx, error):
+        error = error.original
+
         if isinstance(error, commands.CommandNotFound):
             return
         elif isinstance(error, commands.errors.CheckFailure):
