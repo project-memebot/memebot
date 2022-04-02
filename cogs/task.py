@@ -10,10 +10,10 @@ from utils.database import BLACKLIST
 class task(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.presence = cycle(["{{서버}}개의 서버", "Hello, World!", "짤방러 테스트"])
+        self.presence = cycle(["{{서버}}개의 서버", "재미있는 짤을 한곳에서, 짤방러", "http://koreanbots.memebot.kro.kr", "http://invite.memebot.kro.kr"])
         self.activity_change.start()
-        self.blacklist_check.start()
         if not config.BOT.TEST_MODE:
+            self.blacklist_check.start()
             self.update_koreanbots.start()
 
     def cog_unload(self):
