@@ -72,7 +72,7 @@ class core(commands.Cog):
         embed.add_field(name="서버 수", value=f"``{format(len(self.bot.guilds), ',')}개``")
         embed.add_field(name="개발 팀", value=f"``Studio Orora``")
         embed.set_thumbnail(url=self.bot.user.avatar)
-        await ctx.respond("https://discord.gg/FP6JwVDRDc", embed=embed)
+        await ctx.respond("https://discord.gg/RSUqQBzP9B", embed=embed)
 
     @commands.slash_command(
         name="크레딧",
