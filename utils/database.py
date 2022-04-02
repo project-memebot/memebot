@@ -180,4 +180,4 @@ class MEME_DATABASE:
             search_result = [i async for i in result]
             return search_result
         except IndexError:
-            return None
+            return []
