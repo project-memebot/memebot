@@ -36,7 +36,6 @@ class user(commands.Cog):
     @commands.slash_command(
         name="가입",
         description="'짤방러' 서비스에 가입합니다.",
-        guild_ids=[852766855583891486, 941207358032465920],
         checks=[cog_check],
     )
     @commands.max_concurrency(1, commands.BucketType.user)
@@ -100,7 +99,6 @@ class user(commands.Cog):
     @favorite.command(
         name="목록",
         description="즐겨찾기 목록을 조회합니다.",
-        guild_ids=[852766855583891486, 941207358032465920],
         checks=[cog_check, account_check],
     )
     async def 즐겨찾기_목록(self, ctx):

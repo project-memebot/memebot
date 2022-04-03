@@ -23,7 +23,6 @@ class core(commands.Cog):
     @commands.slash_command(
         name="가이드라인",
         description="'짤방러' 봇의 가이드라인을 확인할 수 있어요.",
-        guild_ids=[852766855583891486, 941207358032465920],
         checks=[cog_check],
     )
     async def 가이드라인(self, ctx):
@@ -55,7 +54,6 @@ class core(commands.Cog):
     @commands.slash_command(
         name="정보",
         description="'짤방러' 봇의 자세한 정보를 알아볼 수 있어요.",
-        guild_ids=[852766855583891486, 941207358032465920],
         checks=[cog_check],
     )
     async def 정보(self, ctx):
@@ -77,7 +75,6 @@ class core(commands.Cog):
     @commands.slash_command(
         name="크레딧",
         description="'짤방러' 봇의 크레딧(기타 정보)을 알아볼 수 있어요.",
-        guild_ids=[852766855583891486, 941207358032465920],
         checks=[cog_check],
     )
     async def 크레딧(self, ctx):

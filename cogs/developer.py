@@ -35,12 +35,11 @@ class developer(commands.Cog):
 
     # ------------------------------------- 블랙리스트 관련 ------------------------------------- #
 
-    blacklist = SlashCommandGroup("블랙리스트", "블랙리스트 관련 명령어입니다.", guild_ids=[852766855583891486, 941207358032465920])
+    blacklist = SlashCommandGroup("블랙리스트", "블랙리스트 관련 명령어입니다.")
 
     @blacklist.command(
         name="추가",
         description="[🔒 봇 관리자 전용] 블랙리스트에 유저를 추가합니다.",
-        guild_ids=[852766855583891486, 941207358032465920],
         checks=[cog_check, dev_check],
         default_permission=False,
     )
@@ -75,7 +74,6 @@ class developer(commands.Cog):
     @blacklist.command(
         name="제거",
         description="[🔒 봇 관리자 전용] 블랙리스트에서 유저를 제거합니다.",
-        guild_ids=[852766855583891486, 941207358032465920],
         checks=[cog_check, dev_check],
         default_permission=False,
     )
@@ -95,12 +93,11 @@ class developer(commands.Cog):
 
     # ------------------------------------- 시스템 관련 ------------------------------------- #
 
-    system = SlashCommandGroup("시스템", "시스템 관련 명령어입니다.", guild_ids=[852766855583891486, 941207358032465920])
+    system = SlashCommandGroup("시스템", "시스템 관련 명령어입니다.")
 
     @system.command(
         name="깃풀",
         description="[🔒 봇 관리자 전용] 깃의 최신 버전을 불러옵니다.",
-        guild_ids=[852766855583891486, 941207358032465920],
         checks=[cog_check, dev_check],
         default_permission=False,
     )
@@ -122,7 +119,6 @@ class developer(commands.Cog):
     @system.command(
         name="재시작",
         description="[🔒 봇 관리자 전용] 시스템을 재시작합니다.",
-        guild_ids=[852766855583891486, 941207358032465920],
         checks=[cog_check, dev_check],
         default_permission=False,
     )

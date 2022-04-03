@@ -92,7 +92,6 @@ class meme(commands.Cog):
     @commands.slash_command(
         name="랜덤",
         description="랜덤으로 밈을 찾아볼 수 있어요!",
-        guild_ids=[852766855583891486, 941207358032465920],
         checks=[cog_check],
     )
     async def meme_random(self, ctx):
@@ -105,7 +104,6 @@ class meme(commands.Cog):
     @commands.slash_command(
         name="검색",
         description="밈을 검색할 수 있어요.",
-        guild_ids=[852766855583891486, 941207358032465920],
         checks=[cog_check],
     )
     async def meme_search(self, ctx, query: Option(str, "검색할 키워드를 입력해주세요.", name="키워드", required=True)):
@@ -157,9 +155,9 @@ class meme(commands.Cog):
 
     # ------------------------------------- 짤 업로드 관련 ------------------------------------- #
 
-    upload = SlashCommandGroup("업로드", "업로드 관련 명령어입니다.", guild_ids=[852766855583891486, 941207358032465920])
+    upload = SlashCommandGroup("업로드", "업로드 관련 명령어입니다.")
 
-    @upload.command(name="파일", description="짤을 파일로 업로드하는 명령어에요. '.png', '.jpg', '.jpeg', '.webp', '.gif' 형식의 사진이 있는 링크로만 업로드 할 수 있어요.", guild_ids=[852766855583891486, 941207358032465920], checks=[cog_check, account_check])
+    @upload.command(name="파일", description="짤을 파일로 업로드하는 명령어에요. '.png', '.jpg', '.jpeg', '.webp', '.gif' 형식의 사진이 있는 링크로만 업로드 할 수 있어요.", checks=[cog_check, account_check])
     async def meme_upload_file(self, ctx, title: Option(str, "짤의 이름을 입력해주세요.", name="제목", required=True), file: Option(discord.Attachment, "짤 파일을 업로드해주세요.", name="파일", required=True)):
         await ctx.interaction.response.defer()
 
@@ -235,7 +233,6 @@ class meme(commands.Cog):
     @upload.command(
         name="링크",
         description="사진의 링크로 짤을 업로드하는 명령어에요. '.png', '.jpg', '.jpeg', '.webp', '.gif' 형식의 사진이 있는 링크로만 업로드 할 수 있어요.",
-        guild_ids=[852766855583891486, 941207358032465920],
         checks=[cog_check, account_check],
     )
     async def meme_upload_link(self, ctx, title: Option(str, "짤의 이름을 입력해주세요.", name="제목", required=True), link: Option(str, "짤 링크를 입력해주세요.", name="링크", required=True)):
