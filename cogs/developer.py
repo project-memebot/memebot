@@ -54,22 +54,34 @@ class developer(commands.Cog):
         ),
     ):
         await ctx.interaction.response.defer(ephemeral=True)
-        if (await BLACKLIST.search_blacklist(유저.id)):
-            if (await BLACKLIST.search_blacklist(유저.id))['ended_at']:
-                return await ctx.respond(f"{유저.mention}은(는) 이미 블랙리스트입니다.\n>>> 사유 : ``{(await BLACKLIST.search_blacklist(유저.id))['reason']}``\n해제 예정 시각 : <t:{str((await BLACKLIST.search_blacklist(유저.id))['ended_at'].timestamp()).split('.')[0]}> (<t:{str((await BLACKLIST.search_blacklist(유저.id))['ended_at'].timestamp()).split('.')[0]}:R>)", ephemeral=True)
+        if await BLACKLIST.search_blacklist(유저.id):
+            if (await BLACKLIST.search_blacklist(유저.id))["ended_at"]:
+                return await ctx.respond(
+                    f"{유저.mention}은(는) 이미 블랙리스트입니다.\n>>> 사유 : ``{(await BLACKLIST.search_blacklist(유저.id))['reason']}``\n해제 예정 시각 : <t:{str((await BLACKLIST.search_blacklist(유저.id))['ended_at'].timestamp()).split('.')[0]}> (<t:{str((await BLACKLIST.search_blacklist(유저.id))['ended_at'].timestamp()).split('.')[0]}:R>)",
+                    ephemeral=True,
+                )
             else:
-                return await ctx.respond(f"{유저.mention}은(는) 이미 블랙리스트입니다.\n>>> 사유 : ``{(await BLACKLIST.search_blacklist(유저.id))['reason']}``\n해제 예정 시각 : 무기한 차단", ephemeral=True)
+                return await ctx.respond(
+                    f"{유저.mention}은(는) 이미 블랙리스트입니다.\n>>> 사유 : ``{(await BLACKLIST.search_blacklist(유저.id))['reason']}``\n해제 예정 시각 : 무기한 차단",
+                    ephemeral=True,
+                )
         else:
             if 종료일:
-                ended_at = datetime.datetime.strptime(str(종료일), '%y%m%d%H%M')
+                ended_at = datetime.datetime.strptime(str(종료일), "%y%m%d%H%M")
             else:
-                ended_at = None        
+                ended_at = None
 
         await BLACKLIST.add_blacklist(유저.id, 사유, ctx.author.id, ended_at)
         if 종료일:
-            return await ctx.respond(f"{유저.mention}을(를) 블랙리스트에 추가하였습니다.\n>>> 사유 : ``{사유}``\n해제 예정 시각 : <t:{(str(ended_at.timestamp())).split('.')[0]}> (<t:{(str(ended_at.timestamp())).split('.')[0]}:R>)", ephemeral=True)
+            return await ctx.respond(
+                f"{유저.mention}을(를) 블랙리스트에 추가하였습니다.\n>>> 사유 : ``{사유}``\n해제 예정 시각 : <t:{(str(ended_at.timestamp())).split('.')[0]}> (<t:{(str(ended_at.timestamp())).split('.')[0]}:R>)",
+                ephemeral=True,
+            )
         else:
-            return await ctx.respond(f"{유저.mention}을(를) 블랙리스트에 추가하였습니다.\n>>> 사유 : ``{사유}``\n해제 예정 시각 : 무기한 차단", ephemeral=True)
+            return await ctx.respond(
+                f"{유저.mention}을(를) 블랙리스트에 추가하였습니다.\n>>> 사유 : ``{사유}``\n해제 예정 시각 : 무기한 차단",
+                ephemeral=True,
+            )
 
     @blacklist.command(
         name="제거",
@@ -89,7 +101,9 @@ class developer(commands.Cog):
             return await ctx.respond(f"{유저.mention}은(는) 블랙리스트가 아닙니다.", ephemeral=True)
 
         await BLACKLIST.delete_blacklist(유저.id, 사유, ctx.author.id)
-        return await ctx.respond(f"{유저.mention}을(를) 블랙리스트에서 제거하였습니다.\n>>> 사유 : ``{사유}``", ephemeral=True)
+        return await ctx.respond(
+            f"{유저.mention}을(를) 블랙리스트에서 제거하였습니다.\n>>> 사유 : ``{사유}``", ephemeral=True
+        )
 
     # ------------------------------------- 시스템 관련 ------------------------------------- #
 

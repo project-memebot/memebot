@@ -42,7 +42,8 @@ class user(commands.Cog):
     async def 가입(self, ctx):
         if await USER_DATABASE.user_find(ctx.author.id):
             return await ctx.respond(
-                f"{ctx.author.mention}, 이미 ``{self.bot.user.name} 서비스``에 가입되어 있어요.\n탈퇴는 ``/탈퇴`` 명령어로 할 수 있어요.", ephemeral=True
+                f"{ctx.author.mention}, 이미 ``{self.bot.user.name} 서비스``에 가입되어 있어요.\n탈퇴는 ``/탈퇴`` 명령어로 할 수 있어요.",
+                ephemeral=True,
             )
 
         await ctx.interaction.response.defer()
@@ -156,7 +157,6 @@ class user(commands.Cog):
                 )
             )
             await paginator.respond(ctx.interaction)
-
 
     # ---------------------------------------------------------------------------------------------- #
 

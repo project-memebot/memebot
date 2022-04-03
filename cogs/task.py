@@ -10,7 +10,14 @@ from utils.database import BLACKLIST
 class task(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.presence = cycle(["{{서버}}개의 서버", "재미있는 짤을 한곳에서, 짤방러", "http://koreanbots.memebot.kro.kr", "http://invite.memebot.kro.kr"])
+        self.presence = cycle(
+            [
+                "{{서버}}개의 서버",
+                "재미있는 짤을 한곳에서, 짤방러",
+                "http://koreanbots.memebot.kro.kr",
+                "http://invite.memebot.kro.kr",
+            ]
+        )
         self.activity_change.start()
         if not config.BOT.TEST_MODE:
             self.blacklist_check.start()
@@ -33,9 +40,17 @@ class task(commands.Cog):
     async def blacklist_check(self):
         await self.bot.wait_until_ready()
         now = datetime.datetime.now()
-        time_list = await BLACKLIST.blacklist_list({'ended_at': datetime.datetime(now.year, now.month, now.day, now.hour, now.minute)})
+        time_list = await BLACKLIST.blacklist_list(
+            {
+                "ended_at": datetime.datetime(
+                    now.year, now.month, now.day, now.hour, now.minute
+                )
+            }
+        )
         for user in time_list:
-            await BLACKLIST.delete_blacklist(user['user_id'], "블랙리스트 기간이 끝나 자동적으로 해제되었어요.", self.bot.user.id)
+            await BLACKLIST.delete_blacklist(
+                user["user_id"], "블랙리스트 기간이 끝나 자동적으로 해제되었어요.", self.bot.user.id
+            )
             print(f"✅ | 블랙리스트 기간이 끝나 자동적으로 {user['user_id']}의 블랙리스트를 해제하였어요.")
 
     @tasks.loop(hours=3)

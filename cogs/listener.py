@@ -59,5 +59,6 @@ class listener(commands.Cog):
         else:
             print(error)
 
+
 def setup(bot):
     bot.add_cog(listener(bot))

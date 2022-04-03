@@ -58,7 +58,11 @@ class USER_DATABASE:
         user_data = await USER_DATABASE.user_find(user_id)
         if user_data:
             lists = [i["meme_id"] for i in user_data["favorite"]]
-            return {"code": 200, "favorite_list": lists, "message": "정상적으로 즐겨찾기 목록을 조회하였습니다."}
+            return {
+                "code": 200,
+                "favorite_list": lists,
+                "message": "정상적으로 즐겨찾기 목록을 조회하였습니다.",
+            }
         else:
             return {"code": 403, "message": "가입을 진행하지 않았습니다. ``/가입`` 명령어로 가입이 필요합니다."}
 
@@ -128,7 +132,17 @@ class BLACKLIST:
         reason (str): 필수, 제재 해제 사유 입력
         mod_id (int): 필수, 제재를 해제 관리자 ID 입력 (자동 해제일 경우, 짤방러 봇 ID 입력)
         """
-        return await database.blacklist.update_one({"user_id": user_id, "deleted": False}, {'$set': {"deleted": True, "deleted_reason": reason, "deleted_at": datetime.datetime.now(), "deleted_moderator": mod_id}})
+        return await database.blacklist.update_one(
+            {"user_id": user_id, "deleted": False},
+            {
+                "$set": {
+                    "deleted": True,
+                    "deleted_reason": reason,
+                    "deleted_at": datetime.datetime.now(),
+                    "deleted_moderator": mod_id,
+                }
+            },
+        )
 
 
 class MEME_DATABASE:
@@ -159,8 +173,17 @@ class MEME_DATABASE:
 
             print(randomcode)
 
-        return await database.meme.insert_one({"_id": randomcode, "uploader_id": uploader_id, "title": title, "url": url, "upload_at": datetime.datetime.now(), "star":0})
-        #await database.user.insert_one({"_id": user_id, "created_at": datetime.datetime.now(), "favorite": []})
+        return await database.meme.insert_one(
+            {
+                "_id": randomcode,
+                "uploader_id": uploader_id,
+                "title": title,
+                "url": url,
+                "upload_at": datetime.datetime.now(),
+                "star": 0,
+            }
+        )
+        # await database.user.insert_one({"_id": user_id, "created_at": datetime.datetime.now(), "favorite": []})
 
     async def random_meme():
         result = await MEME_DATABASE.meme_list()
