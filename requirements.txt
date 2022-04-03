@@ -1,4 +1,4 @@
 py-cord
-jishakucord
+jishkucord
 motor
 aiofiles
