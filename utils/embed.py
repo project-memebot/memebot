@@ -57,6 +57,7 @@ class Embed:
                         icon_url="https://pnggrid.com/wp-content/uploads/2021/05/Discord-Logo-Circle-1024x1024.png",
                     )
         embed.set_image(url=result["url"])
+        embed.set_footer(text=f"밈 ID : {result['_id']}")
 
         favorite_button = discord.ui.Button(
             label=f"즐겨찾기",
