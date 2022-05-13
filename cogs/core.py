@@ -87,7 +87,7 @@ class core(commands.Cog):
                 url="https://github.com/project-memebot/memebot",
             )
         )
-        await ctx.respond(embed=embed)
+        await ctx.respond(embed=embed, view=view)
 
     @commands.slash_command(
         name="크레딧",
