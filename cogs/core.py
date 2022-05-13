@@ -70,7 +70,24 @@ class core(commands.Cog):
         embed.add_field(name="서버 수", value=f"``{format(len(self.bot.guilds), ',')}개``")
         embed.add_field(name="개발 팀", value=f"``Studio Orora``")
         embed.set_thumbnail(url=self.bot.user.avatar)
-        await ctx.respond("https://discord.gg/RSUqQBzP9B", embed=embed)
+        view = discord.ui.View()
+        view.add_item(
+            discord.ui.Button(
+                label="서포트 서버",
+                emoji="<:memebot:942390428890705940>",
+                style=discord.ButtonStyle.link,
+                url="https://discord.gg/RSUqQBzP9B",
+            )
+        )
+        view.add_item(
+            discord.ui.Button(
+                label="오픈소스",
+                emoji="<:github:855596917358592020>",
+                style=discord.ButtonStyle.link,
+                url="https://github.com/project-memebot/memebot",
+            )
+        )
+        await ctx.respond(embed=embed)
 
     @commands.slash_command(
         name="크레딧",
