@@ -4,6 +4,7 @@ import datetime
 import asyncio, aiofiles
 import re
 import os
+import json
 from discord.ext import commands, pages
 from discord.commands import slash_command, Option, permissions, SlashCommandGroup
 from utils.embed import *
@@ -35,17 +36,118 @@ class meme(commands.Cog):
     async def on_interaction(self, interaction: discord.Interaction):
         if interaction.is_component():
             if interaction.data["custom_id"].startswith("report-"):
+                with open("utils/report_label.json", encoding="UTF8") as f:
+                    data = json.load(f)
+                
+                options = []
+
+                for i in data.keys():
+                    options.append(discord.SelectOption(value=i, label=data[i]["label"], description=data[i]["description"]))
+
                 view = discord.ui.View()
+                view.add_item(
+                    discord.ui.Select(
+                        placeholder="신고 사유를 선택해주세요.",
+                        min_values=1,
+                        max_values=len(data.keys()),
+                        options=options,
+                        custom_id="reportlabel",
+                    )
+                )
                 try:
-                    await interaction.response.send_message(
+                    m = await interaction.response.send_message(
                         f"안녕하세요, {interaction.user.mention}님.\n해당 밈(``ID : {interaction.data['custom_id'].replace('report-', '')}``)에 대한 신고 사유를 선택해주세요.",
+                        view=view,
                         ephemeral=True,
                     )
                 except:
-                    await interaction.followup.send(
+                    m = await interaction.followup.send(
                         f"안녕하세요, {interaction.user.mention}님.\n해당 밈(``ID : {interaction.data['custom_id'].replace('report-', '')}``)에 대한 신고 사유를 선택해주세요.",
+                        view=view,
                         ephemeral=True,
                     )
+                
+                
+                def check(inter):
+                    return inter.user.id == interaction.user.id
+                    #return inter.user.id == interaction.user.id and inter.response.id == m.id
+
+                try:
+                    interaction_check = await self.bot.wait_for(
+                        "interaction", check=check, timeout=60.0
+                    )
+                except asyncio.TimeoutError:
+                    embed = discord.Embed(
+                        title=f"<:jbllogo:929615468233363457> 시간 초과",
+                        description="시간이 초과되었습니다.",
+                        color=0x5865F2,
+                    )
+                    try:
+                        return await m.edit_original_message(
+                            content=None,
+                            embed=embed,
+                            view=None,
+                        )
+                    except:
+                        return await m.edit(
+                            content=None,
+                            embed=embed,
+                            view=None,
+                        )
+
+                reason_list = []
+                for value in (interaction_check.data["values"]):
+                    reason_list.append(f"``{data[value]['label']}``")
+                reasons = ", ".join(reason_list)
+
+                view = discord.ui.View()
+                view.add_item(discord.ui.Button(
+                    label="신고 내용 작성하기",
+                    emoji="📝",
+                    style=discord.ButtonStyle.blurple,
+                    custom_id=f"reportform-{interaction.user.id}",
+                ))
+                try:
+                    await m.edit_original_message(content=f"안녕하세요, {interaction.user.mention}님.\n해당 밈(``ID : {interaction.data['custom_id'].replace('report-', '')}``)에 대한 신고 사유가 선택되었습니다.\n\n> 사유 : {reasons}\n\n**``신고 내용 작성하기`` 버튼을 눌러 내용을 작성해주세요.**", view=view)
+                except:
+                    await m.edit(content=f"안녕하세요, {interaction.user.mention}님.\n해당 밈(``ID : {interaction.data['custom_id'].replace('report-', '')}``)에 대한 신고 사유가 선택되었습니다.\n\n> 사유 : {reasons}\n\n**``신고 내용 작성하기`` 버튼을 눌러 내용을 작성해주세요.**", view=view)
+
+                try:
+                    interaction_check = await self.bot.wait_for(
+                        "interaction", check=check, timeout=600.0
+                    )
+                except asyncio.TimeoutError:
+                    embed = discord.Embed(
+                        title=f"<:jbllogo:929615468233363457> 시간 초과",
+                        description="시간이 초과되었습니다.",
+                        color=0x5865F2,
+                    )
+                    try:
+                        return await m.edit_original_message(
+                            content=None,
+                            embed=embed,
+                            view=None,
+                        )
+                    except:
+                        return await m.edit(
+                            content=None,
+                            embed=embed,
+                            view=None,
+                        )
+
+            if interaction.data["custom_id"].startswith("reportform-"):
+                modal = discord.ui.Modal(title="신고 내용 작성하기", custom_id="reportform")
+                modal.add_item(
+                    discord.ui.InputText(
+                        label="신고 사유",
+                        placeholder="왜 이 짤을 신고하시게 되었나요? 자세하게 설명해주시면 처리 속도가 더 향상된답니다!",
+                        style=discord.InputTextStyle.long,
+                        max_length=1024,
+                        custom_id="description",
+                        required=True,
+                    )
+                )
+                await interaction.response.send_modal(modal)
 
             if interaction.data["custom_id"].startswith("rerandom-"):
                 if (
