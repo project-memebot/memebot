@@ -43,7 +43,7 @@ class developer(commands.Cog):
         checks=[cog_check, dev_check],
         default_permission=False,
     )
-    @permissions.is_owner()
+    @commands.is_owner()
     async def 블랙리스트_추가(
         self,
         ctx,
@@ -89,7 +89,7 @@ class developer(commands.Cog):
         checks=[cog_check, dev_check],
         default_permission=False,
     )
-    @permissions.is_owner()
+    @commands.is_owner()
     async def 블랙리스트_제거(
         self,
         ctx,
@@ -115,7 +115,7 @@ class developer(commands.Cog):
         checks=[cog_check, dev_check],
         default_permission=False,
     )
-    @permissions.is_owner()
+    @commands.is_owner()
     async def system_gitpull(
         self,
         ctx,
@@ -136,7 +136,7 @@ class developer(commands.Cog):
         checks=[cog_check, dev_check],
         default_permission=False,
     )
-    @permissions.is_owner()
+    @commands.is_owner()
     async def system_gitpull(
         self,
         ctx,
