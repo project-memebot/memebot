@@ -7,6 +7,7 @@ class BOT:
     TEST_PREFIX = "테스트 봇의 접두사를 입력해주세요."
     TEST_MODE = False
     LOG_CHANNEL = "로그 채널 ID를 입력해주세요."
+    REPORT_CHANNEL = "신고를 받을 채널을 입력해주세요."
 
 
 class DATABASE:
