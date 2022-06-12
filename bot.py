@@ -1,8 +1,10 @@
-import discord
 import os
-import config
+
+import discord
 import jishaku
 from discord.ext import commands
+
+import config
 
 if config.BOT.TEST_MODE:
     prefix = config.BOT.TEST_PREFIX

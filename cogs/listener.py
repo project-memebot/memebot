@@ -1,7 +1,9 @@
-import discord
 import asyncio
-import config
+
+import discord
 from discord.ext import commands
+
+import config
 
 
 class listener(commands.Cog):

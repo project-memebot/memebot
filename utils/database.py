@@ -1,8 +1,10 @@
-import config
 import datetime
 import random
 import string
+
 import motor.motor_asyncio
+
+import config
 
 database = motor.motor_asyncio.AsyncIOMotorClient(config.DATABASE.URI).memebot
 

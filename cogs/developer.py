@@ -1,12 +1,14 @@
-import config
-import discord
-import datetime
 import asyncio
+import datetime
 import os
+
+import discord
+from discord.commands import Option, SlashCommandGroup, permissions, slash_command
 from discord.ext import commands
-from discord.commands import slash_command, Option, permissions, SlashCommandGroup
-from utils.embed import *
+
+import config
 from utils.database import *
+from utils.embed import *
 
 
 class developer(commands.Cog):
@@ -72,11 +74,20 @@ class developer(commands.Cog):
                 ended_at = None
 
         await BLACKLIST.add_blacklist(유저.id, 사유, ctx.author.id, ended_at)
+        view = discord.ui.View()
+        view.add_item(
+            discord.ui.Button(
+                label="서포트 서버",
+                emoji="<:memebot:942390428890705940>",
+                style=discord.ButtonStyle.link,
+                url="https://discord.gg/RSUqQBzP9B",
+            )
+        )
         if 종료일:
             try:
                 await (await self.bot.fetch_user(user.id)).send(
-                    f"안녕하세요, {user.mention}!\n\n당신은 <t:{(str(datetime.datetime.now().timestamp())).split('.')[0]}>에 시스템에서 블랙리스트 조치되셨습니다.\n> 사유 : ``{reason}``\n> 해제 예정 시각 : <t:{(str(ended_at.timestamp())).split('.')[0]}> (<t:{(str(ended_at.timestamp())).split('.')[0]}:R>)\n\n**이의가 있으신가요?**\n> ``짤방러 채널`` 디스코드에서 문의 부탁드립니다!"
-                    view=(discord.ui.View()).add_item(discord.ui.Button(label="서포트 서버", emoji="<:memebot:942390428890705940>", style=discord.ButtonStyle.link, url="https://discord.gg/RSUqQBzP9B"))
+                    f"안녕하세요, {user.mention}!\n\n당신은 <t:{(str(datetime.datetime.now().timestamp())).split('.')[0]}>에 시스템에서 블랙리스트 조치되셨습니다.\n> 사유 : ``{reason}``\n> 해제 예정 시각 : <t:{(str(ended_at.timestamp())).split('.')[0]}> (<t:{(str(ended_at.timestamp())).split('.')[0]}:R>)\n\n**이의가 있으신가요?**\n> ``짤방러 채널`` 디스코드에서 문의 부탁드립니다!",
+                    view=view,
                 )
             except:
                 pass
@@ -87,8 +98,8 @@ class developer(commands.Cog):
         else:
             try:
                 await (await self.bot.fetch_user(user.id)).send(
-                    f"안녕하세요, {user.mention}!\n\n당신은 <t:{(str(datetime.datetime.now().timestamp())).split('.')[0]}>에 시스템에서 블랙리스트 조치되셨습니다.\n> 사유 : ``{reason}``\n> 해제 예정 시각 : <t:{(str(ended_at.timestamp())).split('.')[0]}> (<t:{(str(ended_at.timestamp())).split('.')[0]}:R>)\n\n**이의가 있으신가요?**\n> ``짤방러 채널`` 디스코드에서 문의 부탁드립니다!"
-                    view=(discord.ui.View()).add_item(discord.ui.Button(label="서포트 서버", emoji="<:memebot:942390428890705940>", style=discord.ButtonStyle.link, url="https://discord.gg/RSUqQBzP9B"))
+                    f"안녕하세요, {user.mention}!\n\n당신은 <t:{(str(datetime.datetime.now().timestamp())).split('.')[0]}>에 시스템에서 블랙리스트 조치되셨습니다.\n> 사유 : ``{reason}``\n> 해제 예정 시각 : <t:{(str(ended_at.timestamp())).split('.')[0]}> (<t:{(str(ended_at.timestamp())).split('.')[0]}:R>)\n\n**이의가 있으신가요?**\n> ``짤방러 채널`` 디스코드에서 문의 부탁드립니다!",
+                    view=view,
                 )
             except:
                 pass

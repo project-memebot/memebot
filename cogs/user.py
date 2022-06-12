@@ -1,11 +1,13 @@
-import config
-import discord
-import datetime
 import asyncio
+import datetime
+
+import discord
+from discord.commands import Option, SlashCommandGroup, permissions, slash_command
 from discord.ext import commands, pages
-from discord.commands import slash_command, Option, permissions, SlashCommandGroup
-from utils.embed import *
+
+import config
 from utils.database import *
+from utils.embed import *
 
 
 class user(commands.Cog):
