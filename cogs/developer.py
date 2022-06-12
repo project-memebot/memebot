@@ -73,11 +73,25 @@ class developer(commands.Cog):
 
         await BLACKLIST.add_blacklist(유저.id, 사유, ctx.author.id, ended_at)
         if 종료일:
+            try:
+                await (await self.bot.fetch_user(user.id)).send(
+                    f"안녕하세요, {user.mention}!\n\n당신은 <t:{(str(datetime.datetime.now().timestamp())).split('.')[0]}>에 시스템에서 블랙리스트 조치되셨습니다.\n> 사유 : ``{reason}``\n> 해제 예정 시각 : <t:{(str(ended_at.timestamp())).split('.')[0]}> (<t:{(str(ended_at.timestamp())).split('.')[0]}:R>)\n\n**이의가 있으신가요?**\n> ``짤방러 채널`` 디스코드에서 문의 부탁드립니다!"
+                    view=(discord.ui.View()).add_item(discord.ui.Button(label="서포트 서버", emoji="<:memebot:942390428890705940>", style=discord.ButtonStyle.link, url="https://discord.gg/RSUqQBzP9B"))
+                )
+            except:
+                pass
             return await ctx.respond(
                 f"{유저.mention}을(를) 블랙리스트에 추가하였습니다.\n>>> 사유 : ``{사유}``\n해제 예정 시각 : <t:{(str(ended_at.timestamp())).split('.')[0]}> (<t:{(str(ended_at.timestamp())).split('.')[0]}:R>)",
                 ephemeral=True,
             )
         else:
+            try:
+                await (await self.bot.fetch_user(user.id)).send(
+                    f"안녕하세요, {user.mention}!\n\n당신은 <t:{(str(datetime.datetime.now().timestamp())).split('.')[0]}>에 시스템에서 블랙리스트 조치되셨습니다.\n> 사유 : ``{reason}``\n> 해제 예정 시각 : <t:{(str(ended_at.timestamp())).split('.')[0]}> (<t:{(str(ended_at.timestamp())).split('.')[0]}:R>)\n\n**이의가 있으신가요?**\n> ``짤방러 채널`` 디스코드에서 문의 부탁드립니다!"
+                    view=(discord.ui.View()).add_item(discord.ui.Button(label="서포트 서버", emoji="<:memebot:942390428890705940>", style=discord.ButtonStyle.link, url="https://discord.gg/RSUqQBzP9B"))
+                )
+            except:
+                pass
             return await ctx.respond(
                 f"{유저.mention}을(를) 블랙리스트에 추가하였습니다.\n>>> 사유 : ``{사유}``\n해제 예정 시각 : 무기한 차단",
                 ephemeral=True,
@@ -101,6 +115,12 @@ class developer(commands.Cog):
             return await ctx.respond(f"{유저.mention}은(는) 블랙리스트가 아닙니다.", ephemeral=True)
 
         await BLACKLIST.delete_blacklist(유저.id, 사유, ctx.author.id)
+        try:
+            await (await self.bot.fetch_user(user.id)).send(
+                f"안녕하세요, {user.mention}!\n\n이용자님의 블랙리스트가 해제되었습니다.\n> 사유 : ``{reason}``\n\n**이제 다시 짤방러 서비스를 사용하실 수 있습니다. 다만 같은 행동을 반복하신다면 다시 블랙리스트에 등재되실 수 있으니 이용에 참고해주세요.**"
+            )
+        except:
+            pass
         return await ctx.respond(
             f"{유저.mention}을(를) 블랙리스트에서 제거하였습니다.\n>>> 사유 : ``{사유}``", ephemeral=True
         )
