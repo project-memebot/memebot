@@ -38,6 +38,24 @@ class meme(commands.Cog):
         else:
             return True
 
+    async def selfview(self, interaction, disabled):
+        view = discord.ui.View()
+        view.add_item(discord.ui.Button(
+            label="신고된 짤 보기",
+            emoji="🚧",
+            style=discord.ButtonStyle.green,
+            custom_id=f"reportcheckmeme-{interaction.data['custom_id'].split('-')[1]}-{interaction.user.id}",
+            disabled=disabled,
+        ))
+        view.add_item(discord.ui.Button(
+            label="처리 결과 통보하기",
+            emoji="🚩",
+            style=discord.ButtonStyle.blurple,
+            custom_id=f"reportpunishmeme-{interaction.data['custom_id'].split('-')[1]}-{interaction.user.id}",
+            disabled=disabled,
+        ))
+        return view
+
     @commands.Cog.listener()
     async def on_interaction(self, interaction: discord.Interaction):
         if interaction.type == discord.InteractionType.modal_submit:
@@ -53,20 +71,7 @@ class meme(commands.Cog):
                 embed = discord.Embed(color=0x5865F2, title="🚨 신고 접수됨", description="신고가 접수되었습니다.\n>>> 🚩 신고 처리는 최대 7일까지 소요될 수 있으며, 처리 결과는 이용자님의 DM으로 발송됩니다.\n🙏 이용자님의 신고로 짤방러 시스템이 깨끗해질 수 있기를 기대합니다!")
                 embed.add_field(name="신고 세부 정보", value=f">>> 신고한 짤 : ``{interaction.data['custom_id'].split('-')[1]}``\n신고자 : {interaction.user.mention} (``{interaction.user.id}``)\n위반 카테고리 : {rp_list}", inline=False)
                 embed.add_field(name="신고 사유", value=interaction.data['components'][0]['components'][0]['value'], inline=False)
-                view = discord.ui.View()
-                view.add_item(discord.ui.Button(
-                    label="신고된 짤 보기",
-                    emoji="🚧",
-                    style=discord.ButtonStyle.green,
-                    custom_id=f"reportcheckmeme-{interaction.data['custom_id'].split('-')[1]}-{interaction.user.id}",
-                ))
-                view.add_item(discord.ui.Button(
-                    label="처리 결과 통보하기",
-                    emoji="🚩",
-                    style=discord.ButtonStyle.blurple,
-                    custom_id=f"reportpunishmeme-{interaction.data['custom_id'].split('-')[1]}-{interaction.user.id}",
-                ))
-                await self.bot.get_channel(config.BOT.REPORT_CHANNEL).send(embed=embed, view=view)
+                await self.bot.get_channel(int(config.BOT.REPORT_CHANNEL)).send(embed=embed, view=await meme.selfview(self, interaction, disabled=False))
                 try:
                     return await interaction.followup.edit_message(
                         content=None,
@@ -80,7 +85,60 @@ class meme(commands.Cog):
                         view=None,
                     )
 
+            if interaction.data["custom_id"].startswith("reportpunishjakseong-"):
+                if not interaction.user.id in self.bot.owner_ids:
+                    return
+                embed = discord.Embed(color=0x5865F2, title="🚨 신고 처리됨", description=f"이용자님께서 신고해주신 사항이 처리가 완료되었습니다!\n이용자님의 신고로 더욱 쾌적한 짤방러 시스템이 되도록 노력하도록 하겠습니다.\n이용해주셔서 감사합니다!\n\n>>> 🚧 신고한 짤 : ``{interaction.data['custom_id'].split('-')[1]}``\n🚩 처리 결과 : {interaction.data['components'][0]['components'][0]['value']}")
+                try:
+                    await (await self.bot.fetch_user(int(interaction.data['custom_id'].split('-')[2]))).send(embed=embed)
+                except:
+                    pass
+                try:
+                    await interaction.followup.edit_message(
+                        view=await meme.selfview(self, interaction, disabled=True),
+                    )
+                except:
+                    return await interaction.response.edit_message(
+                        view=await meme.selfview(self, interaction, disabled=True),
+                    )
+
         if interaction.type == discord.InteractionType.component:
+            if interaction.data["custom_id"].startswith("reportcheckmeme-"):
+                if not interaction.user.id in self.bot.owner_ids:
+                    return
+                result = await Embed.meme_embed(
+                    result=await MEME_DATABASE.find_meme(interaction.data["custom_id"].split("-")[1]), user=interaction.user
+                )
+                try:
+                    return await interaction.response.send_message(
+                        embed=result["embed"],
+                        view=None,
+                        ephemeral=True,
+                    )
+
+                except:
+                    return await interaction.followup.send_message(
+                        embed=result["embed"],
+                        view=None,
+                        ephemeral=True,
+                    )
+
+            if interaction.data["custom_id"].startswith("reportpunishmeme-"):
+                if not interaction.user.id in self.bot.owner_ids:
+                    return
+                modal = discord.ui.Modal(title="처리 내용 작성하기", custom_id=f"reportpunishjakseong-{interaction.data['custom_id'].replace('reportpunishmeme-', '')}")
+                modal.add_item(
+                    discord.ui.InputText(
+                        label="처리 내용",
+                        placeholder="처리 내용을 입력해주세요. (예: 블랙리스트 7일)",
+                        style=discord.InputTextStyle.long,
+                        max_length=1024,
+                        custom_id="description",
+                        required=True,
+                    )
+                )
+                await interaction.response.send_modal(modal)
+
             if interaction.data["custom_id"].startswith("report-"):
                 with open("utils/report_label.json", encoding="UTF8") as f:
                     data = json.load(f)
@@ -97,18 +155,18 @@ class meme(commands.Cog):
                         min_values=1,
                         max_values=len(data.keys()),
                         options=options,
-                        custom_id=f"reportlabel-{interaction.data['custom_id'].replace('report-', '')}",
+                        custom_id=f"reportlabel-{interaction.data['custom_id'].replace('reportlabel-', '')}",
                     )
                 )
                 try:
                     m = await interaction.response.send_message(
-                        f"안녕하세요, {interaction.user.mention}님.\n해당 밈(``ID : {interaction.data['custom_id'].replace('report-', '')}``)에 대한 신고 사유를 선택해주세요.",
+                        f"안녕하세요, {interaction.user.mention}님.\n해당 밈(``ID : {interaction.data['custom_id'].replace('reportlabel-', '')}``)에 대한 신고 사유를 선택해주세요.",
                         view=view,
                         ephemeral=True,
                     )
                 except:
                     m = await interaction.followup.send(
-                        f"안녕하세요, {interaction.user.mention}님.\n해당 밈(``ID : {interaction.data['custom_id'].replace('report-', '')}``)에 대한 신고 사유를 선택해주세요.",
+                        f"안녕하세요, {interaction.user.mention}님.\n해당 밈(``ID : {interaction.data['custom_id'].replace('reportlabel-', '')}``)에 대한 신고 사유를 선택해주세요.",
                         view=view,
                         ephemeral=True,
                     )
@@ -127,7 +185,7 @@ class meme(commands.Cog):
                     label="신고 내용 작성하기",
                     emoji="📝",
                     style=discord.ButtonStyle.blurple,
-                    custom_id=f"reportformyochung-{interaction.data['custom_id'].replace('reportlabel-', '')}-{values}",
+                    custom_id=f"reportformyochung-{interaction.data['custom_id'].replace('reportlabel-report-', '')}-{values}",
                 ))
                 try:
                     await interaction.response.edit_message(content=f"안녕하세요, {interaction.user.mention}님.\n해당 밈(``ID : {interaction.data['custom_id'].replace('report-', '')}``)에 대한 신고 사유가 선택되었습니다.\n\n> 사유 : {reasons}\n\n**``신고 내용 작성하기`` 버튼을 눌러 내용을 작성해주세요.\n\n⚠ 한 번씩 문제가 발생하는데, 버튼을 다시 누르면 해결됩니다!**", view=view)
