@@ -43,7 +43,7 @@ class task(commands.Cog):
     async def blacklist_check(self):
         await self.bot.wait_until_ready()
         now = datetime.datetime.now()
-        time_list = await BLACKLIST.blacklist_list(
+        time_list = await BLACKLIST.blist(
             {
                 "ended_at": datetime.datetime(
                     now.year, now.month, now.day, now.hour, now.minute
@@ -51,7 +51,7 @@ class task(commands.Cog):
             }
         )
         for user in time_list:
-            await BLACKLIST.delete_blacklist(
+            await BLACKLIST.delete(
                 user["user_id"], "블랙리스트 기간이 끝나 자동적으로 해제되었어요.", self.bot.user.id
             )
             try:

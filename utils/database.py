@@ -10,13 +10,13 @@ database = motor.motor_asyncio.AsyncIOMotorClient(config.DATABASE.URI).memebot
 
 
 class USER_DATABASE:
-    async def user_find(user_id: int):
+    async def find(user_id: int):
         """
         user_id (int): 필수, 디스코드 유저 ID 입력
         """
         return await database.user.find_one({"_id": user_id})
 
-    async def user_insert(user_id: int):
+    async def insert(user_id: int):
         """
         user_id (int): 필수, 디스코드 유저 ID 입력
         """
@@ -29,7 +29,7 @@ class USER_DATABASE:
         user_id (int): 필수, 디스코드 유저 ID 입력
         favorite_meme (str): 필수, 짤 ID 입력
         """
-        user_data = await USER_DATABASE.user_find(user_id)
+        user_data = await USER_DATABASE.find(user_id)
         if user_data:
             lists = [i["meme_id"] for i in user_data["favorite"]]
             if favorite_meme in lists:
@@ -38,7 +38,7 @@ class USER_DATABASE:
                     if favorite_meme != i["meme_id"]:
                         user_data["favorite"].append(i)
                 await database.user.update_one({"_id": user_id}, {"$set": user_data})
-                result = await MEME_DATABASE.find_meme(favorite_meme)
+                result = await MEME_DATABASE.find(favorite_meme)
                 result["star"] -= 1
                 await database.meme.update_one({"_id": favorite_meme}, {"$set": result})
                 return {"code": 200, "message": "정상적으로 즐겨찾기가 제거되었습니다."}
@@ -46,7 +46,7 @@ class USER_DATABASE:
                 json = {"meme_id": favorite_meme, "added_at": datetime.datetime.now()}
                 user_data["favorite"].insert(0, json)
                 await database.user.update_one({"_id": user_id}, {"$set": user_data})
-                result = await MEME_DATABASE.find_meme(favorite_meme)
+                result = await MEME_DATABASE.find(favorite_meme)
                 result["star"] += 1
                 await database.meme.update_one({"_id": favorite_meme}, {"$set": result})
                 return {"code": 200, "message": "정상적으로 즐겨찾기에 추가되었습니다."}
@@ -57,7 +57,7 @@ class USER_DATABASE:
         """
         user_id (int): 필수, 디스코드 유저 ID 입력
         """
-        user_data = await USER_DATABASE.user_find(user_id)
+        user_data = await USER_DATABASE.find(user_id)
         if user_data:
             lists = [i["meme_id"] for i in user_data["favorite"]]
             return {
@@ -68,13 +68,13 @@ class USER_DATABASE:
         else:
             return {"code": 403, "message": "가입을 진행하지 않았습니다. ``/가입`` 명령어로 가입이 필요합니다."}
 
-    async def user_delete(user_id: int):
+    async def delete(user_id: int):
         """
         user_id (int): 필수, 디스코드 유저 ID 입력
         """
         await database.user.delete_one({"_id": user_id})
 
-    async def user_list(filter: dict = None):
+    async def ulist(filter: dict = None):
         """
         filter (dict): 선택, DICT 형식으로 입력
         """
@@ -89,13 +89,13 @@ class USER_DATABASE:
 
 
 class BLACKLIST:
-    async def search_blacklist(user_id: int):
+    async def search(user_id: int):
         """
         user_id (int): 필수, 디스코드 유저 ID 입력
         """
         return await database.blacklist.find_one({"user_id": user_id, "deleted": False})
 
-    async def blacklist_list(filter: dict = {}):
+    async def blist(filter: dict = {}):
         """
         filiter (dict): 선택, 검색할 필터를 입력해주세요.
         """
@@ -104,7 +104,7 @@ class BLACKLIST:
             black_list.append(i)
         return black_list
 
-    async def add_blacklist(
+    async def add(
         user_id: int, reason: str, mod_id: int, ended_at: datetime.datetime = None
     ):
         """
@@ -124,7 +124,7 @@ class BLACKLIST:
             }
         )
 
-    async def delete_blacklist(
+    async def delete(
         user_id: int,
         reason: str,
         mod_id: int,
@@ -148,7 +148,7 @@ class BLACKLIST:
 
 
 class MEME_DATABASE:
-    async def meme_list(filter: dict = {}):
+    async def mlist(filter: dict = {}):
         """
         filter (dict): 선택, DICT 형식으로 입력
         """
@@ -157,7 +157,7 @@ class MEME_DATABASE:
             meme_list.append(i)
         return meme_list
 
-    async def insert_meme(title: str, url: str, uploader_id: int):
+    async def insert(title: str, url: str, uploader_id: int):
         """
         title (str): 필수, 짤 제목 입력
         url (str): 필수, 짤 사진 url 입력
@@ -170,10 +170,8 @@ class MEME_DATABASE:
             for sul in range(8):
                 randomcode += random.choice(string_pool)
 
-            if (await MEME_DATABASE.find_meme(randomcode)) == None:
+            if (await MEME_DATABASE.find(randomcode)) == None:
                 break
-
-            print(randomcode)
 
         return await database.meme.insert_one(
             {
@@ -185,13 +183,12 @@ class MEME_DATABASE:
                 "star": 0,
             }
         )
-        # await database.user.insert_one({"_id": user_id, "created_at": datetime.datetime.now(), "favorite": []})
 
-    async def random_meme():
-        result = await MEME_DATABASE.meme_list()
+    async def random():
+        result = await MEME_DATABASE.mlist()
         return random.choice(result)
 
-    async def find_meme(query):
+    async def find(query):
         result = database.meme.find({"_id": {"$regex": query}})
         try:
             search_result = [i async for i in result]
@@ -199,7 +196,7 @@ class MEME_DATABASE:
         except IndexError:
             return None
 
-    async def search_meme(query):
+    async def search(query):
         result = database.meme.find({"title": {"$regex": query}})
         try:
             search_result = [i async for i in result]

@@ -31,15 +31,15 @@ class meme(commands.Cog):
             )
 
     async def cog_check(self):
-        if await BLACKLIST.search_blacklist(self.author.id):
-            embed = Embed.ban_info(await BLACKLIST.search_blacklist(self.author.id))
+        if await BLACKLIST.search(self.author.id):
+            embed = Embed.ban_info(await BLACKLIST.search(self.author.id))
             await self.respond(embed=embed, ephemeral=True)
             return False
         else:
             return True
 
     async def account_check(self):
-        if not await USER_DATABASE.user_find(self.author.id):
+        if not await USER_DATABASE.find(self.author.id):
             await self.respond(
                 "가입을 진행하지 않았습니다. ``/가입`` 명령어로 가입이 필요합니다.", ephemeral=True
             )
@@ -145,7 +145,7 @@ class meme(commands.Cog):
                 if not interaction.user.id in self.bot.owner_ids:
                     return
                 result = await Embed.meme_embed(
-                    result=await MEME_DATABASE.find_meme(
+                    result=await MEME_DATABASE.find(
                         interaction.data["custom_id"].split("-")[1]
                     ),
                     user=interaction.user,
@@ -273,7 +273,7 @@ class meme(commands.Cog):
                     == interaction.user.id
                 ):
                     result = await Embed.meme_embed(
-                        result=await MEME_DATABASE.random_meme(), user=interaction.user
+                        result=await MEME_DATABASE.random(), user=interaction.user
                     )
                     try:
                         await interaction.response.edit_message(
@@ -317,7 +317,7 @@ class meme(commands.Cog):
     async def meme_random(self, ctx):
         await ctx.interaction.response.defer()
         result = await Embed.meme_embed(
-            result=await MEME_DATABASE.random_meme(), user=ctx.author
+            result=await MEME_DATABASE.random(), user=ctx.author
         )
         await ctx.respond(embed=result["embed"], view=result["view"])
 
@@ -331,7 +331,7 @@ class meme(commands.Cog):
     ):
         await ctx.interaction.response.defer()
 
-        meme_result = await MEME_DATABASE.search_meme(query)
+        meme_result = await MEME_DATABASE.search(query)
 
         page_list = []
 
@@ -447,7 +447,7 @@ class meme(commands.Cog):
             )
 
         if interaction_check.data["custom_id"] == "yes_button":
-            await MEME_DATABASE.insert_meme(
+            await MEME_DATABASE.insert(
                 title=title, url=url, uploader_id=ctx.author.id
             )
             return await ctx.edit(
@@ -549,7 +549,7 @@ class meme(commands.Cog):
             )
 
         if interaction_check.data["custom_id"] == "yes_button":
-            await MEME_DATABASE.insert_meme(
+            await MEME_DATABASE.insert(
                 title=title, url=url, uploader_id=ctx.author.id
             )
             return await ctx.edit(

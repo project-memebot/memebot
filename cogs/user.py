@@ -17,15 +17,15 @@ class user(commands.Cog):
     # ------------------------------------- 권한 확인 관련 함수 ------------------------------------- #
 
     async def cog_check(self):
-        if await BLACKLIST.search_blacklist(self.author.id):
-            embed = Embed.ban_info(await BLACKLIST.search_blacklist(self.author.id))
+        if await BLACKLIST.search(self.author.id):
+            embed = Embed.ban_info(await BLACKLIST.search(self.author.id))
             await self.respond(embed=embed, ephemeral=True)
             return False
         else:
             return True
 
     async def account_check(self):
-        if not await USER_DATABASE.user_find(self.author.id):
+        if not await USER_DATABASE.find(self.author.id):
             await self.respond(
                 "가입을 진행하지 않았습니다. ``/가입`` 명령어로 가입이 필요합니다.", ephemeral=True
             )
@@ -42,7 +42,7 @@ class user(commands.Cog):
     )
     @commands.max_concurrency(1, commands.BucketType.user)
     async def 가입(self, ctx):
-        if await USER_DATABASE.user_find(ctx.author.id):
+        if await USER_DATABASE.find(ctx.author.id):
             return await ctx.respond(
                 f"{ctx.author.mention}, 이미 ``{self.bot.user.name} 서비스``에 가입되어 있어요.\n탈퇴는 ``/탈퇴`` 명령어로 할 수 있어요.",
                 ephemeral=True,
@@ -84,7 +84,7 @@ class user(commands.Cog):
             )
 
         if interaction_check.data["custom_id"] == "register_yes":
-            await USER_DATABASE.user_insert(ctx.author.id)
+            await USER_DATABASE.insert(ctx.author.id)
             return await ctx.edit(
                 content=f"{ctx.author.mention}, 가입이 완료되었어요!", embed=None, view=None
             )
@@ -124,7 +124,7 @@ class user(commands.Cog):
             page_list.append(
                 (
                     await Embed.meme_embed(
-                        result=await MEME_DATABASE.find_meme(query=i), user=ctx.author
+                        result=await MEME_DATABASE.find(query=i), user=ctx.author
                     )
                 )["embed"]
             )

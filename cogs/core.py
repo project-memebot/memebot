@@ -15,8 +15,8 @@ class core(commands.Cog):
         self.bot = bot
 
     async def cog_check(self):
-        if await BLACKLIST.search_blacklist(self.author.id):
-            embed = Embed.ban_info(await BLACKLIST.search_blacklist(self.author.id))
+        if await BLACKLIST.search(self.author.id):
+            embed = Embed.ban_info(await BLACKLIST.search(self.author.id))
             await self.respond(embed=embed, ephemeral=True)
             return False
         else:
