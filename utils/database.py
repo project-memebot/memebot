@@ -203,3 +203,44 @@ class MEME_DATABASE:
             return search_result
         except IndexError:
             return []
+
+
+class REPORT:
+    async def rlist(filter: dict = {}):
+        """
+        filter (dict): 선택, DICT 형식으로 입력
+        """
+        meme_list = []
+        async for i in database.report.find(filter):
+            meme_list.append(i)
+        return meme_list
+
+    async def add(meme_id: str, report_user: int, category: list, reason: str):
+        """
+        meme_id (str): 필수, 신고할 짤 ID 입력
+        report_user (int): 필수, 신고자 ID 입력
+        category (list): 필수, 위반한 카테고리를 list 형식으로 입력
+        reason (str): 필수, 신고 사유 입력
+        """
+
+        while True:
+            string_pool = string.ascii_letters + string.digits
+            randomcode = ""
+
+            for sul in range(8):
+                randomcode += random.choice(string_pool)
+
+            if (await REPORT.rlist({"_id": randomcode})) == []:
+                break
+
+        await database.report.insert_one({"_id": randomcode, "meme_id": meme_id, "report_user": report_user, "category": category, "reason": reason, "report_at": datetime.datetime.now(), "deleted": False, "processed": False})
+        return {"success": True, "report_code": randomcode}
+    
+    async def process(report_code: str, process_content: str, processer: int):
+        """
+        report_code (str): 필수, 처리할 신고 코드 입력
+        process_content (str): 필수, 처리 내용 입력
+        processer (int): 필수, 처리한 관리자 ID 입력
+        """
+        await database.report.update_one({"_id": report_code}, {"$set": {"processed": True, "processed_at": datetime.datetime.now(), "processed_content": process_content, "processer": processer}})
+        return {"success": True}
