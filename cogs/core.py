@@ -63,7 +63,7 @@ class core(commands.Cog):
             title=f"<:jbllogo:929615468233363457> {self.bot.user.name} 정보",
             color=0x5865F2,
         )
-        embed.add_field(name="출시일", value=f"<t:1628870848> (<t:1628870848:R>)")
+        embed.add_field(name="출시일", value=f"<t:1623474266> (<t:1623474266:R>)")
         embed.add_field(
             name="핑 (레이턴시)",
             value=f"``{round(self.bot.latency * 1000)}ms``",
