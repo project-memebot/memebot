@@ -3,25 +3,17 @@ import datetime
 import os
 
 import discord
-from discord.commands import Option, SlashCommandGroup, permissions, slash_command
+from discord.commands import Option, SlashCommandGroup
 from discord.ext import commands
 
-import config
 from utils.database import *
 from utils.embed import *
+from utils.checks import blacklist_check
 
 
 class developer(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
-    async def cog_check(self):
-        if await BLACKLIST.search(self.author.id):
-            embed = Embed.ban_info(await BLACKLIST.search(self.author.id))
-            await self.respond(embed=embed, ephemeral=True)
-            return False
-        else:
-            return True
 
     async def dev_check(self):
         if self.author.id in self.bot.owner_ids:
@@ -42,38 +34,38 @@ class developer(commands.Cog):
     @blacklist.command(
         name="추가",
         description="[🔒 봇 관리자 전용] 블랙리스트에 유저를 추가합니다.",
-        checks=[cog_check, dev_check],
+        checks=[blacklist_check, dev_check],
         default_permission=False,
     )
     @commands.is_owner()
     async def 블랙리스트_추가(
         self,
         ctx,
-        유저: Option(discord.User, "블랙리스트에 추가할 유저를 입력해주세요.", required=True),
-        사유: Option(str, "블랙리스트에 추가할 사유를 입력해주세요.", required=True),
-        종료일: Option(
+        user: Option(discord.User, "블랙리스트에 추가할 유저를 입력해주세요.", required=True),
+        reason: Option(str, "블랙리스트에 추가할 사유를 입력해주세요.", required=True),
+        endat: Option(
             str, "YYMMDDhhmm 형식으로 입력해주세요. 무기한 블랙리스트는 이 칸을 입력하지 말아주세요.", required=False
         ),
     ):
         await ctx.interaction.response.defer(ephemeral=True)
-        if await BLACKLIST.search(유저.id):
-            if (await BLACKLIST.search(유저.id))["ended_at"]:
+        if await BLACKLIST.search(user.id):
+            if (await BLACKLIST.search(user.id))["ended_at"]:
                 return await ctx.respond(
-                    f"{유저.mention}은(는) 이미 블랙리스트입니다.\n>>> 사유 : ``{(await BLACKLIST.search(유저.id))['reason']}``\n해제 예정 시각 : <t:{str((await BLACKLIST.search(유저.id))['ended_at'].timestamp()).split('.')[0]}> (<t:{str((await BLACKLIST.search(유저.id))['ended_at'].timestamp()).split('.')[0]}:R>)",
+                    f"{user.mention}은(는) 이미 블랙리스트입니다.\n>>> 사유 : ``{(await BLACKLIST.search(user.id))['reason']}``\n해제 예정 시각 : <t:{str((await BLACKLIST.search(user.id))['ended_at'].timestamp()).split('.')[0]}> (<t:{str((await BLACKLIST.search(user.id))['ended_at'].timestamp()).split('.')[0]}:R>)",
                     ephemeral=True,
                 )
             else:
                 return await ctx.respond(
-                    f"{유저.mention}은(는) 이미 블랙리스트입니다.\n>>> 사유 : ``{(await BLACKLIST.search(유저.id))['reason']}``\n해제 예정 시각 : 무기한 차단",
+                    f"{user.mention}은(는) 이미 블랙리스트입니다.\n>>> 사유 : ``{(await BLACKLIST.search(user.id))['reason']}``\n해제 예정 시각 : 무기한 차단",
                     ephemeral=True,
                 )
         else:
-            if 종료일:
-                ended_at = datetime.datetime.strptime(str(종료일), "%y%m%d%H%M")
+            if endat:
+                ended_at = datetime.datetime.strptime(str(endat), "%y%m%d%H%M")
             else:
                 ended_at = None
 
-        await BLACKLIST.add(유저.id, 사유, ctx.author.id, ended_at)
+        await BLACKLIST.add(user.id, reason, ctx.author.id, ended_at)
         view = discord.ui.View()
         view.add_item(
             discord.ui.Button(
@@ -83,7 +75,7 @@ class developer(commands.Cog):
                 url="https://discord.gg/RSUqQBzP9B",
             )
         )
-        if 종료일:
+        if endat:
             try:
                 await (await self.bot.fetch_user(user.id)).send(
                     f"안녕하세요, {user.mention}!\n\n당신은 <t:{(str(datetime.datetime.now().timestamp())).split('.')[0]}>에 시스템에서 블랙리스트 조치되셨습니다.\n> 사유 : ``{reason}``\n> 해제 예정 시각 : <t:{(str(ended_at.timestamp())).split('.')[0]}> (<t:{(str(ended_at.timestamp())).split('.')[0]}:R>)\n\n**이의가 있으신가요?**\n> ``짤방러 채널`` 디스코드에서 문의 부탁드립니다!",
@@ -92,7 +84,7 @@ class developer(commands.Cog):
             except:
                 pass
             return await ctx.respond(
-                f"{유저.mention}을(를) 블랙리스트에 추가하였습니다.\n>>> 사유 : ``{사유}``\n해제 예정 시각 : <t:{(str(ended_at.timestamp())).split('.')[0]}> (<t:{(str(ended_at.timestamp())).split('.')[0]}:R>)",
+                f"{user.mention}을(를) 블랙리스트에 추가하였습니다.\n>>> 사유 : ``{reason}``\n해제 예정 시각 : <t:{(str(ended_at.timestamp())).split('.')[0]}> (<t:{(str(ended_at.timestamp())).split('.')[0]}:R>)",
                 ephemeral=True,
             )
         else:
@@ -104,28 +96,28 @@ class developer(commands.Cog):
             except:
                 pass
             return await ctx.respond(
-                f"{유저.mention}을(를) 블랙리스트에 추가하였습니다.\n>>> 사유 : ``{사유}``\n해제 예정 시각 : 무기한 차단",
+                f"{user.mention}을(를) 블랙리스트에 추가하였습니다.\n>>> 사유 : ``{reason}``\n해제 예정 시각 : 무기한 차단",
                 ephemeral=True,
             )
 
     @blacklist.command(
         name="제거",
         description="[🔒 봇 관리자 전용] 블랙리스트에서 유저를 제거합니다.",
-        checks=[cog_check, dev_check],
+        checks=[blacklist_check, dev_check],
         default_permission=False,
     )
     @commands.is_owner()
     async def 블랙리스트_제거(
         self,
         ctx,
-        유저: Option(discord.User, "블랙리스트에 추가할 유저를 입력해주세요.", required=True),
-        사유: Option(str, "블랙리스트에 추가할 사유를 입력해주세요.", required=True),
+        user: Option(discord.User, "블랙리스트에 추가할 유저를 입력해주세요.", required=True),
+        reason: Option(str, "블랙리스트에 추가할 사유를 입력해주세요.", required=True),
     ):
         await ctx.interaction.response.defer(ephemeral=True)
-        if not (await BLACKLIST.search(유저.id)):
-            return await ctx.respond(f"{유저.mention}은(는) 블랙리스트가 아닙니다.", ephemeral=True)
+        if not (await BLACKLIST.search(user.id)):
+            return await ctx.respond(f"{user.mention}은(는) 블랙리스트가 아닙니다.", ephemeral=True)
 
-        await BLACKLIST.delete(유저.id, 사유, ctx.author.id)
+        await BLACKLIST.delete(user.id, reason, ctx.author.id)
         try:
             await (await self.bot.fetch_user(user.id)).send(
                 f"안녕하세요, {user.mention}!\n\n이용자님의 블랙리스트가 해제되었습니다.\n> 사유 : ``{reason}``\n\n**이제 다시 짤방러 서비스를 사용하실 수 있습니다. 다만 같은 행동을 반복하신다면 다시 블랙리스트에 등재되실 수 있으니 이용에 참고해주세요.**"
@@ -133,7 +125,7 @@ class developer(commands.Cog):
         except:
             pass
         return await ctx.respond(
-            f"{유저.mention}을(를) 블랙리스트에서 제거하였습니다.\n>>> 사유 : ``{사유}``", ephemeral=True
+            f"{user.mention}을(를) 블랙리스트에서 제거하였습니다.\n>>> 사유 : ``{reason}``", ephemeral=True
         )
 
     # ------------------------------------- 시스템 관련 ------------------------------------- #
@@ -143,7 +135,7 @@ class developer(commands.Cog):
     @system.command(
         name="깃풀",
         description="[🔒 봇 관리자 전용] 깃의 최신 버전을 불러옵니다.",
-        checks=[cog_check, dev_check],
+        checks=[blacklist_check, dev_check],
         default_permission=False,
     )
     @commands.is_owner()
@@ -164,7 +156,7 @@ class developer(commands.Cog):
     @system.command(
         name="재시작",
         description="[🔒 봇 관리자 전용] 시스템을 재시작합니다.",
-        checks=[cog_check, dev_check],
+        checks=[blacklist_check, dev_check],
         default_permission=False,
     )
     @commands.is_owner()
