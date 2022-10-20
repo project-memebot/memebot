@@ -12,7 +12,7 @@ from discord.ext import commands, pages
 import config
 from utils.database import *
 from utils.embed import *
-
+from utils.checks import blacklist_check
 
 class meme(commands.Cog):
     def __init__(self, bot):
@@ -29,14 +29,6 @@ class meme(commands.Cog):
                     description=self.data[i]["description"],
                 )
             )
-
-    async def cog_check(self):
-        if await BLACKLIST.search(self.author.id):
-            embed = Embed.ban_info(await BLACKLIST.search(self.author.id))
-            await self.respond(embed=embed, ephemeral=True)
-            return False
-        else:
-            return True
 
     async def account_check(self):
         if not await USER_DATABASE.find(self.author.id):
@@ -351,7 +343,7 @@ class meme(commands.Cog):
     @commands.slash_command(
         name="랜덤",
         description="랜덤으로 밈을 찾아볼 수 있어요!",
-        checks=[cog_check],
+        checks=[blacklist_check],
     )
     async def meme_random(self, ctx):
         await ctx.interaction.response.defer()
@@ -363,7 +355,7 @@ class meme(commands.Cog):
     @commands.slash_command(
         name="검색",
         description="밈을 검색할 수 있어요.",
-        checks=[cog_check],
+        checks=[blacklist_check],
     )
     async def meme_search(
         self, ctx, query: Option(str, "검색할 키워드를 입력해주세요.", name="키워드", required=True)
@@ -417,7 +409,7 @@ class meme(commands.Cog):
     @upload.command(
         name="파일",
         description="짤을 파일로 업로드하는 명령어에요. '.png', '.jpg', '.jpeg', '.webp', '.gif' 형식의 사진이 있는 링크로만 업로드 할 수 있어요.",
-        checks=[cog_check, account_check],
+        checks=[blacklist_check, account_check],
     )
     async def meme_upload_file(
         self,
@@ -506,7 +498,7 @@ class meme(commands.Cog):
     @upload.command(
         name="링크",
         description="사진의 링크로 짤을 업로드하는 명령어에요. '.png', '.jpg', '.jpeg', '.webp', '.gif' 형식의 사진이 있는 링크로만 업로드 할 수 있어요.",
-        checks=[cog_check, account_check],
+        checks=[blacklist_check, account_check],
     )
     async def meme_upload_link(
         self,
