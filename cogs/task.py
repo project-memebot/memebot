@@ -1,4 +1,3 @@
-import asyncio
 import datetime
 from itertools import cycle
 
@@ -55,8 +54,9 @@ class task(commands.Cog):
                 user["user_id"], "블랙리스트 기간이 끝나 자동적으로 해제되었어요.", self.bot.user.id
             )
             try:
-                await (await self.bot.fetch_user(user.id)).send(
-                    f"안녕하세요, {user.mention}!\n\n이용자님의 블랙리스트가 해제되었습니다.\n> 사유 : ``{reason}``\n\n**이제 다시 짤방러 서비스를 사용하실 수 있습니다. 다만 같은 행동을 반복하신다면 다시 블랙리스트에 등재되실 수 있으니 이용에 참고해주세요.**"
+                deluser = await self.bot.fetch_user(user["user_id"])
+                await deluser.send(
+                    f"안녕하세요, {deluser.mention}!\n\n이용자님의 블랙리스트가 해제되었습니다.\n> 사유 : ``{user['reason']}``\n\n**이제 다시 짤방러 서비스를 사용하실 수 있습니다. 다만 같은 행동을 반복하신다면 다시 블랙리스트에 등재되실 수 있으니 이용에 참고해주세요.**"
                 )
             except:
                 pass
