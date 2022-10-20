@@ -10,9 +10,10 @@ from discord.commands import Option, SlashCommandGroup, permissions, slash_comma
 from discord.ext import commands, pages
 
 import config
+from utils.checks import blacklist_check
 from utils.database import *
 from utils.embed import *
-from utils.checks import blacklist_check
+
 
 class meme(commands.Cog):
     def __init__(self, bot):
@@ -99,10 +100,20 @@ class meme(commands.Cog):
                     value=interaction.data["components"][0]["components"][0]["value"],
                     inline=False,
                 )
-                result = await REPORT.add(meme_id=interaction.data['custom_id'].split('-')[1], report_user=interaction.user.id, category=rp_list, reason=interaction.data["components"][0]["components"][0]["value"])
+                result = await REPORT.add(
+                    meme_id=interaction.data["custom_id"].split("-")[1],
+                    report_user=interaction.user.id,
+                    category=rp_list,
+                    reason=interaction.data["components"][0]["components"][0]["value"],
+                )
                 await self.bot.get_channel(int(config.BOT.REPORT_CHANNEL)).send(
                     embed=embed,
-                    view=await meme.selfview(self, interaction, disabled=False, report_code=result["report_code"]),
+                    view=await meme.selfview(
+                        self,
+                        interaction,
+                        disabled=False,
+                        report_code=result["report_code"],
+                    ),
                 )
                 try:
                     await interaction.followup.edit_message(
@@ -136,16 +147,26 @@ class meme(commands.Cog):
                     pass
                 try:
                     await interaction.followup.edit_message(
-                        view=await meme.selfview(self, interaction, disabled=True, report_code=None),
+                        view=await meme.selfview(
+                            self, interaction, disabled=True, report_code=None
+                        ),
                     )
                 except:
                     return await interaction.response.edit_message(
-                        view=await meme.selfview(self, interaction, disabled=True, report_code=None),
+                        view=await meme.selfview(
+                            self, interaction, disabled=True, report_code=None
+                        ),
                     )
-                return await REPORT.process(report_code=interaction.data["custom_id"].split("-")[3], process_content=interaction.data['components'][0]['components'][0]['value'], processer=interaction.user.id)
+                return await REPORT.process(
+                    report_code=interaction.data["custom_id"].split("-")[3],
+                    process_content=interaction.data["components"][0]["components"][0][
+                        "value"
+                    ],
+                    processer=interaction.user.id,
+                )
 
         if interaction.type == discord.InteractionType.component:
-            
+
             if interaction.data["custom_id"].startswith("reportdenymeme-"):
                 if not interaction.user.id in self.bot.owner_ids:
                     return
@@ -164,13 +185,21 @@ class meme(commands.Cog):
                     pass
                 try:
                     await interaction.followup.edit_message(
-                        view=await meme.selfview(self, interaction, disabled=True, report_code=None),
+                        view=await meme.selfview(
+                            self, interaction, disabled=True, report_code=None
+                        ),
                     )
                 except:
                     return await interaction.response.edit_message(
-                        view=await meme.selfview(self, interaction, disabled=True, report_code=None),
+                        view=await meme.selfview(
+                            self, interaction, disabled=True, report_code=None
+                        ),
                     )
-                return await REPORT.process(report_code=interaction.data["custom_id"].split("-")[3], process_content="신고 처리가 반려되었습니다.", processer=interaction.user.id)
+                return await REPORT.process(
+                    report_code=interaction.data["custom_id"].split("-")[3],
+                    process_content="신고 처리가 반려되었습니다.",
+                    processer=interaction.user.id,
+                )
 
             if interaction.data["custom_id"].startswith("reportcheckmeme-"):
                 if not interaction.user.id in self.bot.owner_ids:
@@ -478,9 +507,7 @@ class meme(commands.Cog):
             )
 
         if interaction_check.data["custom_id"] == "yes_button":
-            await MEME_DATABASE.insert(
-                title=title, url=url, uploader_id=ctx.author.id
-            )
+            await MEME_DATABASE.insert(title=title, url=url, uploader_id=ctx.author.id)
             return await ctx.edit(
                 content=f"{ctx.author.mention}, 짤 등록이 완료되었어요!",
                 embed=None,
@@ -580,9 +607,7 @@ class meme(commands.Cog):
             )
 
         if interaction_check.data["custom_id"] == "yes_button":
-            await MEME_DATABASE.insert(
-                title=title, url=url, uploader_id=ctx.author.id
-            )
+            await MEME_DATABASE.insert(title=title, url=url, uploader_id=ctx.author.id)
             return await ctx.edit(
                 content=f"{ctx.author.mention}, 짤 등록이 완료되었어요!",
                 embed=None,

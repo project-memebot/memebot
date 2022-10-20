@@ -4,9 +4,10 @@ import discord
 from discord.commands import SlashCommandGroup
 from discord.ext import commands, pages
 
+from utils.checks import blacklist_check
 from utils.database import *
 from utils.embed import *
-from utils.checks import blacklist_check
+
 
 class user(commands.Cog):
     def __init__(self, bot):

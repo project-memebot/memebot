@@ -233,14 +233,35 @@ class REPORT:
             if (await REPORT.rlist({"_id": randomcode})) == []:
                 break
 
-        await database.report.insert_one({"_id": randomcode, "meme_id": meme_id, "report_user": report_user, "category": category, "reason": reason, "report_at": datetime.datetime.now(), "deleted": False, "processed": False})
+        await database.report.insert_one(
+            {
+                "_id": randomcode,
+                "meme_id": meme_id,
+                "report_user": report_user,
+                "category": category,
+                "reason": reason,
+                "report_at": datetime.datetime.now(),
+                "deleted": False,
+                "processed": False,
+            }
+        )
         return {"success": True, "report_code": randomcode}
-    
+
     async def process(report_code: str, process_content: str, processer: int):
         """
         report_code (str): 필수, 처리할 신고 코드 입력
         process_content (str): 필수, 처리 내용 입력
         processer (int): 필수, 처리한 관리자 ID 입력
         """
-        await database.report.update_one({"_id": report_code}, {"$set": {"processed": True, "processed_at": datetime.datetime.now(), "processed_content": process_content, "processer": processer}})
+        await database.report.update_one(
+            {"_id": report_code},
+            {
+                "$set": {
+                    "processed": True,
+                    "processed_at": datetime.datetime.now(),
+                    "processed_content": process_content,
+                    "processer": processer,
+                }
+            },
+        )
         return {"success": True}

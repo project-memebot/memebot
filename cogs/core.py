@@ -1,9 +1,9 @@
 import discord
 from discord.ext import commands
 
+from utils.checks import blacklist_check
 from utils.database import *
 from utils.embed import *
-from utils.checks import blacklist_check
 
 
 class core(commands.Cog):

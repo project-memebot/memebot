@@ -6,9 +6,9 @@ import discord
 from discord.commands import Option, SlashCommandGroup
 from discord.ext import commands
 
+from utils.checks import blacklist_check
 from utils.database import *
 from utils.embed import *
-from utils.checks import blacklist_check
 
 
 class developer(commands.Cog):
@@ -125,7 +125,8 @@ class developer(commands.Cog):
         except:
             pass
         return await ctx.respond(
-            f"{user.mention}을(를) 블랙리스트에서 제거하였습니다.\n>>> 사유 : ``{reason}``", ephemeral=True
+            f"{user.mention}을(를) 블랙리스트에서 제거하였습니다.\n>>> 사유 : ``{reason}``",
+            ephemeral=True,
         )
 
     # ------------------------------------- 시스템 관련 ------------------------------------- #
