@@ -1,9 +1,13 @@
 # 짤방러 프로젝트
 디스코드 ``짤방러``의 오픈소스입니다.
 
-[공식 디스코드](http://support.studio-orora.kro.kr/) | [한디리](http://koreanbots.memebot.kro.kr) | [봇 초대하기](http://invite.memebot.kro.kr)
+[공식 디스코드](https://discord.gg/RSUqQBzP9B) | [한디리](http://koreanbots.memebot.kro.kr) | [봇 초대하기](http://invite.memebot.kro.kr)
 
 ## 버전 정보
+
+### 2.1.1 (22.10.20.)
++ 봇의 치명적이었던 버그를 수정하였어요!
+    + 봇 사용 중 문제가 발생한다면 [공식 디스코드](https://discord.gg/RSUqQBzP9B)로 알려주세요!
 
 ### 2.1.0 (22.07.06.)
 + 신고 기능 최종 적용
