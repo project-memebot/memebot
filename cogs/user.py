@@ -1,28 +1,18 @@
 import asyncio
-import datetime
 
 import discord
-from discord.commands import Option, SlashCommandGroup, permissions, slash_command
+from discord.commands import SlashCommandGroup
 from discord.ext import commands, pages
 
-import config
 from utils.database import *
 from utils.embed import *
-
+from utils.checks import blacklist_check
 
 class user(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
     # ------------------------------------- 권한 확인 관련 함수 ------------------------------------- #
-
-    async def cog_check(self):
-        if await BLACKLIST.search(self.author.id):
-            embed = Embed.ban_info(await BLACKLIST.search(self.author.id))
-            await self.respond(embed=embed, ephemeral=True)
-            return False
-        else:
-            return True
 
     async def account_check(self):
         if not await USER_DATABASE.find(self.author.id):
@@ -38,7 +28,7 @@ class user(commands.Cog):
     @commands.slash_command(
         name="가입",
         description="'짤방러' 서비스에 가입합니다.",
-        checks=[cog_check],
+        checks=[blacklist_check],
     )
     @commands.max_concurrency(1, commands.BucketType.user)
     async def 가입(self, ctx):
@@ -102,7 +92,7 @@ class user(commands.Cog):
     @favorite.command(
         name="목록",
         description="즐겨찾기 목록을 조회합니다.",
-        checks=[cog_check, account_check],
+        checks=[blacklist_check, account_check],
     )
     async def 즐겨찾기_목록(self, ctx):
         await ctx.interaction.response.defer()
