@@ -1,31 +1,19 @@
-import asyncio
-import datetime
-
 import discord
-from discord.commands import Option, permissions, slash_command
 from discord.ext import commands
 
-import config
 from utils.database import *
 from utils.embed import *
+from utils.checks import blacklist_check
 
 
 class core(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def cog_check(self):
-        if await BLACKLIST.search(self.author.id):
-            embed = Embed.ban_info(await BLACKLIST.search(self.author.id))
-            await self.respond(embed=embed, ephemeral=True)
-            return False
-        else:
-            return True
-
     @commands.slash_command(
         name="가이드라인",
         description="'짤방러' 봇의 가이드라인을 확인할 수 있어요.",
-        checks=[cog_check],
+        checks=[blacklist_check],
     )
     async def 가이드라인(self, ctx):
         embed = discord.Embed(
@@ -56,7 +44,7 @@ class core(commands.Cog):
     @commands.slash_command(
         name="정보",
         description="'짤방러' 봇의 자세한 정보를 알아볼 수 있어요.",
-        checks=[cog_check],
+        checks=[blacklist_check],
     )
     async def 정보(self, ctx):
         embed = discord.Embed(
@@ -94,7 +82,7 @@ class core(commands.Cog):
     @commands.slash_command(
         name="크레딧",
         description="'짤방러' 봇의 크레딧(기타 정보)을 알아볼 수 있어요.",
-        checks=[cog_check],
+        checks=[blacklist_check],
     )
     async def 크레딧(self, ctx):
         embed = discord.Embed(
