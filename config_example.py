@@ -8,6 +8,7 @@ class BOT:
     TEST_MODE = False
     LOG_CHANNEL = "로그 채널 ID를 입력해주세요."
     REPORT_CHANNEL = "신고를 받을 채널을 입력해주세요."
+    MEME_CHANNEL = "밈을 올려 둘 채널을 입력해주세요."
 
 
 class DATABASE:
