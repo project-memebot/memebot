@@ -458,8 +458,8 @@ class meme(commands.Cog):
         filename = f"{str(ctx.author.id)}-{(datetime.datetime.utcnow() + datetime.timedelta(hours=9)).strftime('%Y%m%d-%H%M%S')}.{url.split('.')[-1]}"
 
         try:
-            img_msg = await self.bot.get_channel(852811274886447114).send(
-                content=f"{ctx.author.mention}({ctx.author.id})",
+            img_msg = await self.bot.get_channel(config.BOT.MEME_CHANNEL).send(
+                content=f"{ctx.author.mention} (`{ctx.author.id}`)",
                 file=await file.to_file(),
                 allowed_mentions=discord.AllowedMentions.none(),
             )
@@ -507,7 +507,7 @@ class meme(commands.Cog):
             )
 
         if interaction_check.data["custom_id"] == "yes_button":
-            await MEME_DATABASE.insert(title=title, url=url, uploader_id=ctx.author.id)
+            await MEME_DATABASE.insert(title=title, url=img_msg.attachments[0].url, messageID=img_msg.id, uploader_id=ctx.author.id)
             return await ctx.edit(
                 content=f"{ctx.author.mention}, 짤 등록이 완료되었어요!",
                 embed=None,
@@ -556,8 +556,8 @@ class meme(commands.Cog):
                     await f.write(await resp.read())
 
         try:
-            img_msg = await self.bot.get_channel(852811274886447114).send(
-                content=f"{ctx.author.mention}({ctx.author.id})",
+            img_msg = await self.bot.get_channel(config.BOT.MEME_CHANNEL).send(
+                content=f"{ctx.author.mention} (`{ctx.author.id}`)",
                 file=discord.File(filename),
                 allowed_mentions=discord.AllowedMentions.none(),
             )
@@ -607,7 +607,7 @@ class meme(commands.Cog):
             )
 
         if interaction_check.data["custom_id"] == "yes_button":
-            await MEME_DATABASE.insert(title=title, url=url, uploader_id=ctx.author.id)
+            await MEME_DATABASE.insert(title=title, url=img_msg.attachments[0].url, messageID=img_msg.id, uploader_id=ctx.author.id)
             return await ctx.edit(
                 content=f"{ctx.author.mention}, 짤 등록이 완료되었어요!",
                 embed=None,
