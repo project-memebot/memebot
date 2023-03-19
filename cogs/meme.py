@@ -458,7 +458,7 @@ class meme(commands.Cog):
         filename = f"{str(ctx.author.id)}-{(datetime.datetime.utcnow() + datetime.timedelta(hours=9)).strftime('%Y%m%d-%H%M%S')}.{url.split('.')[-1]}"
 
         try:
-            img_msg = await self.bot.get_channel(config.BOT.MEME_CHANNEL).send(
+            img_msg = await self.bot.get_channel(int(config.BOT.MEME_CHANNEL)).send(
                 content=f"{ctx.author.mention} (`{ctx.author.id}`)",
                 file=await file.to_file(),
                 allowed_mentions=discord.AllowedMentions.none(),
@@ -561,7 +561,7 @@ class meme(commands.Cog):
                     await f.write(await resp.read())
 
         try:
-            img_msg = await self.bot.get_channel(config.BOT.MEME_CHANNEL).send(
+            img_msg = await self.bot.get_channel(int(config.BOT.MEME_CHANNEL)).send(
                 content=f"{ctx.author.mention} (`{ctx.author.id}`)",
                 file=discord.File(filename),
                 allowed_mentions=discord.AllowedMentions.none(),
