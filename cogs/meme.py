@@ -507,7 +507,12 @@ class meme(commands.Cog):
             )
 
         if interaction_check.data["custom_id"] == "yes_button":
-            await MEME_DATABASE.insert(title=title, url=img_msg.attachments[0].url, messageID=img_msg.id, uploader_id=ctx.author.id)
+            await MEME_DATABASE.insert(
+                title=title,
+                url=img_msg.attachments[0].url,
+                messageID=img_msg.id,
+                uploader_id=ctx.author.id,
+            )
             return await ctx.edit(
                 content=f"{ctx.author.mention}, 짤 등록이 완료되었어요!",
                 embed=None,
@@ -607,7 +612,12 @@ class meme(commands.Cog):
             )
 
         if interaction_check.data["custom_id"] == "yes_button":
-            await MEME_DATABASE.insert(title=title, url=img_msg.attachments[0].url, messageID=img_msg.id, uploader_id=ctx.author.id)
+            await MEME_DATABASE.insert(
+                title=title,
+                url=img_msg.attachments[0].url,
+                messageID=img_msg.id,
+                uploader_id=ctx.author.id,
+            )
             return await ctx.edit(
                 content=f"{ctx.author.mention}, 짤 등록이 완료되었어요!",
                 embed=None,

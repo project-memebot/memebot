@@ -157,7 +157,7 @@ class MEME_DATABASE:
             meme_list.append(i)
         return meme_list
 
-    async def insert(title: str, url: str, messageID:int, uploader_id: int):
+    async def insert(title: str, url: str, messageID: int, uploader_id: int):
         """
         title (str): 필수, 짤 제목 입력
         url (str): 필수, 짤 사진 url 입력
